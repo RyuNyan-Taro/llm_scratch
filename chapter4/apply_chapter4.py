@@ -34,7 +34,11 @@ def _apply_dummy_transformer():
     batch = torch.stack(batch, dim=0)
     print(batch)
 
-
+    torch.manual_seed(123)
+    model = parts.DummyGPTModel(GPT_CONFIG_124M)
+    logits = model(batch)
+    print('output shape:', logits.shape)
+    print(logits)
 
 
 if __name__ == "__main__":
