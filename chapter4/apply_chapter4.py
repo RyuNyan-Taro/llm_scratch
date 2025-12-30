@@ -67,6 +67,10 @@ def _apply_normalization():
     print('mean:', mean)
     print('var:', var)
 
+    torch.set_printoptions(sci_mode=False)
+    print('mean:', mean)
+    print('var:', var)
+
 
 if __name__ == "__main__":
     main()
