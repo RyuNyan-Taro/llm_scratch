@@ -1,5 +1,6 @@
 import tiktoken
 import torch
+import torch.nn as nn
 
 import parts
 
@@ -21,6 +22,9 @@ def main():
     print('\napply dummy transformer')
     _apply_dummy_transformer()
 
+    print('\napply normalization')
+    _apply_normalization()
+
 
 def _apply_dummy_transformer():
     tokenizer = tiktoken.get_encoding("gpt2")
@@ -39,6 +43,16 @@ def _apply_dummy_transformer():
     logits = model(batch)
     print('output shape:', logits.shape)
     print(logits)
+
+
+def _apply_normalization():
+    torch.manual_seed(123)
+    batch_example = torch.randn(2, 5)
+    print('batch_example:', batch_example, '\n')
+    layer = nn.Sequential(nn.Linear(5, 6), nn.ReLU())
+    out = layer(batch_example)
+    print(out)
+
 
 
 if __name__ == "__main__":
