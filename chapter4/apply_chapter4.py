@@ -59,6 +59,14 @@ def _apply_normalization():
     print('mean:', mean)
     print('var:', var)
 
+    out_norm = (out - mean) / torch.sqrt(var)
+    print('out_norm:', out_norm)
+
+    mean = out_norm.mean(dim=-1, keepdim=True)
+    var = out_norm.var(dim=-1, keepdim=True)
+    print('mean:', mean)
+    print('var:', var)
+
 
 if __name__ == "__main__":
     main()
