@@ -19,8 +19,8 @@ GPT_CONFIG_124M = {
 def main():
     print('start main')
 
-    print('\napply dummy transformer')
-    _apply_dummy_transformer()
+    # print('\napply dummy transformer')
+    # _apply_dummy_transformer()
 
     print('\napply normalization')
     _apply_normalization()
@@ -53,6 +53,11 @@ def _apply_normalization():
     out = layer(batch_example)
     print(out)
 
+    mean = out.mean(dim=-1, keepdim=True)
+    var = out.var(dim=-1, keepdim=True)
+
+    print('mean:', mean)
+    print('var:', var)
 
 
 if __name__ == "__main__":
