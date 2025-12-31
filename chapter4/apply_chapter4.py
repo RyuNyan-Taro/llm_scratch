@@ -18,7 +18,6 @@ GPT_CONFIG_124M = {
 
 
 def main():
-    print('start main')
 
     # print('\napply dummy transformer')
     # _apply_dummy_transformer()
