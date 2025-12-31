@@ -1,4 +1,4 @@
-__all__ = ['DummyGPTModel', 'LayerNorm', 'GELU', 'FeedForward']
+__all__ = ['DummyGPTModel', 'LayerNorm', 'GELU', 'FeedForward', 'ExampleDeepNeuralNetwork']
 
 import torch
 import torch.nn as nn
@@ -96,3 +96,29 @@ class FeedForward(nn.Module):
 
     def forward(self, x):
         return self.layers(x)
+
+
+class ExampleDeepNeuralNetwork(nn.Module):
+    def __init__(self, layer_sizes: list[int], use_shortcut: bool):
+        """Initializes deep neural network with optional shortcut connections"""
+
+        super().__init__()
+
+        self.use_shortcut = use_shortcut
+
+        self.layers = nn.ModuleList([
+            nn.Sequential(nn.Linear(layer_sizes[_i], layer_sizes[_i + 1]), GELU()) for _i in range(5)
+        ])
+
+    def forward(self, x):
+        for layer in self.layers:
+            layer_output = layer(x)
+
+            if self.use_shortcut and x.shape == layer_output.shape:
+                x = x + layer_output
+                continue
+
+            x = layer_output
+
+        return x
+
