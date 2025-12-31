@@ -121,6 +121,11 @@ def _apply_shortcut():
 
     parts.print_gradients(model_without_shortcut, sample_input)
 
+    torch.manual_seed(123)
+    model_with_shortcut = parts.ExampleDeepNeuralNetwork(layer_sizes, use_shortcut=True)
+    print('\nwith shortcut:')
+    parts.print_gradients(model_with_shortcut, sample_input)
+
 
 if __name__ == "__main__":
     main()
