@@ -1,4 +1,4 @@
-__all__ = ['DummyGPTModel']
+__all__ = ['DummyGPTModel', 'LayerNorm']
 
 import torch
 import torch.nn as nn
