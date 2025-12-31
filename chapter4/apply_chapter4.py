@@ -71,6 +71,13 @@ def _apply_normalization():
     print('mean:', mean)
     print('var:', var)
 
+    ln = parts.LayerNorm(emb_dim=5)
+    out_ln = ln(batch_example)
+    mean = out_ln.mean(dim=-1, keepdim=True)
+    var = out_ln.var(dim=-1, unbiased=False, keepdim=True)
+    print('mean:', mean)
+    print('var:', var)
+
 
 if __name__ == "__main__":
     main()
