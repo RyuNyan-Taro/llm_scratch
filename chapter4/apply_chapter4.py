@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import tiktoken
 import torch
 import torch.nn as nn
@@ -22,8 +23,11 @@ def main():
     # print('\napply dummy transformer')
     # _apply_dummy_transformer()
 
-    print('\napply normalization')
-    _apply_normalization()
+    # print('\napply normalization')
+    # _apply_normalization()
+
+    print('\n apply gelu')
+    _apply_gelu()
 
 
 def _apply_dummy_transformer():
