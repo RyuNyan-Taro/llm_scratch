@@ -61,9 +61,17 @@ def _apply_loss():
     print(f'targets batch1: {parts.token_ids_to_text(targets[0], tokenizer)}')
     print(f'output batch1: {parts.token_ids_to_text(token_ids[0].flatten(), tokenizer)}')
 
+    probas_list = list()
     for _text_idx in range(2):
         target_probas = probas[_text_idx, [0, 1, 2], targets[_text_idx]]
         print(f'target probas batch {_text_idx+1}: {target_probas}')
+        probas_list.append(target_probas)
+
+    log_probas = torch.log(torch.cat(probas_list))
+    print(f'log probas: {log_probas}')
+
+    avg_log_probas = torch.mean(log_probas)
+    print(f'avg log probas: {avg_log_probas}')
 
 
 if __name__ == '__main__':
