@@ -167,6 +167,10 @@ def _apply_gpt_model():
     total_params = sum(p.numel() for p in model.parameters())
     print(f'Total number of parameters: {total_params:,}')
 
+    total_size_bytes = total_params * 4
+    total_size_mb = total_size_bytes / (1024 * 1024)
+
+    print(f'Total size of parameters in MB: {total_size_mb:.2f}')
 
 
 if __name__ == "__main__":
