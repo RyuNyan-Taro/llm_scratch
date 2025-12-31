@@ -240,6 +240,9 @@ def _apply_generate_text():
     print('output:', out, '\n')
     print('output length:', len(out[0]))
 
+    decoded = tokenizer.decode(out.squeeze(0).tolist())
+    print('decoded:', decoded)
+
 
 if __name__ == "__main__":
     main()
