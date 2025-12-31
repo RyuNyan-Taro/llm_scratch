@@ -30,11 +30,14 @@ def main():
     # print('\n apply shortcut')
     # _apply_shortcut()
 
-    print('apply transformer')
-    _apply_transformer()
+    # print('apply transformer')
+    # _apply_transformer()
+
+    print('apply gpt model')
+    _apply_gpt_model()
 
 
-def _apply_dummy_transformer():
+def _get_batch():
     tokenizer = tiktoken.get_encoding("gpt2")
     batch = []
     txt1 = "Every effort moves you"
@@ -44,6 +47,12 @@ def _apply_dummy_transformer():
     batch.append(torch.tensor(tokenizer.encode(txt2)))
 
     batch = torch.stack(batch, dim=0)
+
+    return batch
+
+
+def _apply_dummy_transformer():
+    batch = _get_batch()
     print(batch)
 
     torch.manual_seed(123)
@@ -137,6 +146,18 @@ def _apply_transformer():
     output = block(x)
 
     print('input_shape -> output_shape:', x.shape, '->', output.shape)
+
+
+def _apply_gpt_model():
+    batch = _get_batch()
+
+    torch.manual_seed(123)
+    model = parts.GPTModel(GPT_CONFIG_124M)
+    out = model(batch)
+
+    print('Input batch:\n', batch)
+    print('Output shape:\n', out.shape)
+    print(out)
 
 
 if __name__ == "__main__":
