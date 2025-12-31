@@ -176,5 +176,49 @@ def _apply_gpt_model():
     print(f'Total size of parameters in MB: {total_size_mb:.2f}')
 
 
+def _apply_test_4_2():
+    gpt2_medium_cfg = {
+        'vocab_size': 50257,
+        'context_length': 1024,
+        'emb_dim': 1024,
+        'n_heads': 16,
+        'n_layers': 24,
+        "drop_rate": 0.1,
+        "qkv_bias": False
+    }
+
+    gpt2_large_cfg = {
+        'vocab_size': 50257,
+        'context_length': 1024,
+        'emb_dim': 1280,
+        'n_heads': 20,
+        'n_layers': 36,
+        "drop_rate": 0.1,
+        "qkv_bias": False
+    }
+
+    gpt2_x_large_cfg = {
+        'vocab_size': 50257,
+        'context_length': 1024,
+        'emb_dim': 1600,
+        'n_heads': 25,
+        'n_layers': 48,
+        "drop_rate": 0.1,
+        "qkv_bias": False
+    }
+
+    for cfg, _name in zip([gpt2_medium_cfg, gpt2_large_cfg, gpt2_x_large_cfg], ['medium', 'large', 'x-large']):
+        model = parts.GPTModel(cfg)
+        total_params = sum(p.numel() for p in model.parameters())
+
+        print('\nmodel:', _name)
+        print(f'Total number of parameters: {total_params:,}')
+
+        total_size_bytes = total_params * 4
+        total_size_mb = total_size_bytes / (1024 * 1024)
+
+        print(f'Total size of parameters in MB: {total_size_mb:.2f}')
+
+
 if __name__ == "__main__":
     main()
