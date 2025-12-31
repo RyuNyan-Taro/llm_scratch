@@ -15,5 +15,5 @@ def print_gradients(model, x):
 
     for name, param in model.named_parameters():
         if 'weight' in name:
-            print(f'{name} has gradient mean of {param.grad.mean().item():.3f}')
+            print(f'{name} has gradient mean of {param.grad.abs().mean().item()}')
 
