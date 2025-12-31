@@ -27,8 +27,11 @@ def main():
     # print('\n apply gelu')
     # _apply_gelu()
 
-    print('\n apply shortcut')
-    _apply_shortcut()
+    # print('\n apply shortcut')
+    # _apply_shortcut()
+
+    print('apply transformer')
+    _apply_transformer()
 
 
 def _apply_dummy_transformer():
@@ -125,6 +128,15 @@ def _apply_shortcut():
     model_with_shortcut = parts.ExampleDeepNeuralNetwork(layer_sizes, use_shortcut=True)
     print('\nwith shortcut:')
     parts.print_gradients(model_with_shortcut, sample_input)
+
+
+def _apply_transformer():
+    torch.manual_seed(123)
+    x = torch.rand(2, 4, 768)
+    block = parts.TransformerBlock(GPT_CONFIG_124M)
+    output = block(x)
+
+    print('input_shape -> output_shape:', x.shape, '->', output.shape)
 
 
 if __name__ == "__main__":
