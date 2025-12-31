@@ -24,8 +24,8 @@ def main():
     # print('\napply normalization')
     # _apply_normalization()
 
-    print('\n apply gelu')
-    _apply_gelu()
+    # print('\n apply gelu')
+    # _apply_gelu()
 
 
 def _apply_dummy_transformer():
