@@ -27,6 +27,9 @@ def main():
     # print('\n apply gelu')
     # _apply_gelu()
 
+    print('\n apply shortcut')
+    _apply_shortcut()
+
 
 def _apply_dummy_transformer():
     tokenizer = tiktoken.get_encoding("gpt2")
@@ -105,6 +108,18 @@ def _apply_gelu():
     x = torch.rand(2, 3, 768)
     out = ffn(x)
     print(out.shape)
+
+
+def _apply_shortcut():
+    layer_sizes = [3, 3, 3, 3, 3, 1]
+    sample_input = torch.tensor(
+        [[1., 0., -1.]]
+    )
+
+    torch.manual_seed(123)
+    model_without_shortcut = parts.ExampleDeepNeuralNetwork(layer_sizes, use_shortcut=False)
+
+    parts.print_gradients(model_without_shortcut, sample_input)
 
 
 if __name__ == "__main__":
