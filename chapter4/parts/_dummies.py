@@ -2,7 +2,6 @@ __all__ = ['DummyGPTModel']
 
 import torch
 import torch.nn as nn
-from keras.src.layers import MultiHeadAttention
 
 
 class DummyGPTModel(nn.Module):
