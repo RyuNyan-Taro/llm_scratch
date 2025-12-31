@@ -164,6 +164,10 @@ def _apply_gpt_model():
     print('Output shape:\n', out.shape)
     print(out)
 
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f'Total number of parameters: {total_params:,}')
+
+
 
 if __name__ == "__main__":
     main()
