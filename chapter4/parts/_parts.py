@@ -1,4 +1,4 @@
-__all__ = ['DummyGPTModel', 'LayerNorm', 'GELU']
+__all__ = ['DummyGPTModel', 'LayerNorm', 'GELU', 'FeedForward']
 
 import torch
 import torch.nn as nn
@@ -82,3 +82,17 @@ class GELU(nn.Module):
 
         return 0.5 * x * (1 + torch.tanh(_theta))
 
+
+class FeedForward(nn.Module):
+
+    def __init__(self, cfg: dict):
+        super().__init__()
+
+        self.layers = nn.Sequential(
+            nn.Linear(cfg['emb_dim'], 4 * cfg['emb_dim']),
+            nn.GELU(),
+            nn.Linear(cfg['emb_dim'], 4 * cfg['emb_dim'])
+        )
+
+    def forward(self, x):
+        return self.layers(x)
