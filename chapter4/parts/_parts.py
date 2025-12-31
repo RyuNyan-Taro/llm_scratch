@@ -46,8 +46,16 @@ class DummyTransformerBlock(nn.Module):
 
 class DummyLayerNorm(nn.Module):
 
-    def __init__(self, normalized_shape: int, eps=1e-5):
+    def __init__(self, emb_dim: int):
         super().__init__()
 
+        self.eps = 1e-5
+        self.scale = nn.Parameter(torch.ones(emb_dim))
+        self.shift = nn.Parameter(torch.zeros(emb_dim))
+
     def forward(self, x):
-        return x
+        mean = x.mean(-1, keepdim=True)
+        var = x.var(-1, keepdim=True)
+        norm_x = (x - mean) / torch.sqrt(var + self.eps)
+
+        return self.scale * norm_x + self.shift
