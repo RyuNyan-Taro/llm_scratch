@@ -33,8 +33,11 @@ def main():
     # print('apply transformer')
     # _apply_transformer()
 
-    print('apply gpt model')
-    _apply_gpt_model()
+    # print('apply gpt model')
+    # _apply_gpt_model()
+
+    print('apply test 4-2')
+    _apply_test_4_2()
 
 
 def _get_batch():
