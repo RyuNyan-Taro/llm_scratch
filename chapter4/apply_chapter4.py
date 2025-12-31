@@ -36,8 +36,8 @@ def main():
     # print('apply gpt model')
     # _apply_gpt_model()
 
-    print('apply test 4-2')
-    _apply_test_4_2()
+    # print('apply test 4-2')
+    # _apply_test_4_2()
 
 
 def _get_batch():
