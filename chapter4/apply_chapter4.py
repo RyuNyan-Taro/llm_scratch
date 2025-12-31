@@ -27,11 +27,23 @@ def main():
     # print('\n apply gelu')
     # _apply_gelu()
 
-    print('\n apply shortcut')
-    _apply_shortcut()
+    # print('\n apply shortcut')
+    # _apply_shortcut()
+
+    # print('apply transformer')
+    # _apply_transformer()
+
+    # print('apply gpt model')
+    # _apply_gpt_model()
+
+    # print('apply test 4-2')
+    # _apply_test_4_2()
+
+    print('apply generate text')
+    _apply_generate_text()
 
 
-def _apply_dummy_transformer():
+def _get_batch():
     tokenizer = tiktoken.get_encoding("gpt2")
     batch = []
     txt1 = "Every effort moves you"
@@ -41,6 +53,12 @@ def _apply_dummy_transformer():
     batch.append(torch.tensor(tokenizer.encode(txt2)))
 
     batch = torch.stack(batch, dim=0)
+
+    return batch
+
+
+def _apply_dummy_transformer():
+    batch = _get_batch()
     print(batch)
 
     torch.manual_seed(123)
@@ -120,6 +138,110 @@ def _apply_shortcut():
     model_without_shortcut = parts.ExampleDeepNeuralNetwork(layer_sizes, use_shortcut=False)
 
     parts.print_gradients(model_without_shortcut, sample_input)
+
+    torch.manual_seed(123)
+    model_with_shortcut = parts.ExampleDeepNeuralNetwork(layer_sizes, use_shortcut=True)
+    print('\nwith shortcut:')
+    parts.print_gradients(model_with_shortcut, sample_input)
+
+
+def _apply_transformer():
+    torch.manual_seed(123)
+    x = torch.rand(2, 4, 768)
+    block = parts.TransformerBlock(GPT_CONFIG_124M)
+    output = block(x)
+
+    print('input_shape -> output_shape:', x.shape, '->', output.shape)
+
+
+def _apply_gpt_model():
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+    batch = _get_batch()
+    batch = batch.to(device)
+
+    torch.manual_seed(123)
+    model = parts.GPTModel(GPT_CONFIG_124M)
+    model.to(device)
+    out = model(batch)
+
+    print('Input batch:\n', batch)
+    print('Output shape:\n', out.shape)
+    print(out)
+
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f'Total number of parameters: {total_params:,}')
+
+    total_size_bytes = total_params * 4
+    total_size_mb = total_size_bytes / (1024 * 1024)
+
+    print(f'Total size of parameters in MB: {total_size_mb:.2f}')
+
+
+def _apply_test_4_2():
+    gpt2_medium_cfg = {
+        'vocab_size': 50257,
+        'context_length': 1024,
+        'emb_dim': 1024,
+        'n_heads': 16,
+        'n_layers': 24,
+        "drop_rate": 0.1,
+        "qkv_bias": False
+    }
+
+    gpt2_large_cfg = {
+        'vocab_size': 50257,
+        'context_length': 1024,
+        'emb_dim': 1280,
+        'n_heads': 20,
+        'n_layers': 36,
+        "drop_rate": 0.1,
+        "qkv_bias": False
+    }
+
+    gpt2_x_large_cfg = {
+        'vocab_size': 50257,
+        'context_length': 1024,
+        'emb_dim': 1600,
+        'n_heads': 25,
+        'n_layers': 48,
+        "drop_rate": 0.1,
+        "qkv_bias": False
+    }
+
+    for cfg, _name in zip([gpt2_medium_cfg, gpt2_large_cfg, gpt2_x_large_cfg], ['medium', 'large', 'x-large']):
+        model = parts.GPTModel(cfg)
+        total_params = sum(p.numel() for p in model.parameters())
+
+        print('\nmodel:', _name)
+        print(f'Total number of parameters: {total_params:,}')
+
+        total_size_bytes = total_params * 4
+        total_size_mb = total_size_bytes / (1024 * 1024)
+
+        print(f'Total size of parameters in MB: {total_size_mb:.2f}')
+
+
+def _apply_generate_text():
+    start_context = "Hello, I am"
+    tokenizer = tiktoken.get_encoding("gpt2")
+    encoded = tokenizer.encode(start_context)
+    print('encoded:', encoded)
+
+    encoded_tensor = torch.tensor(encoded).unsqueeze(0)
+    print('encoded tensor:', encoded_tensor.shape)
+
+    model = parts.GPTModel(GPT_CONFIG_124M)
+    model.eval()
+
+    out = parts.generate_text_simple(model, encoded_tensor, max_new_tokens=6, context_size=GPT_CONFIG_124M['context_length'])
+
+    print('output:', out, '\n')
+    print('output length:', len(out[0]))
+
+    decoded = tokenizer.decode(out.squeeze(0).tolist())
+    print('decoded:', decoded)
 
 
 if __name__ == "__main__":
