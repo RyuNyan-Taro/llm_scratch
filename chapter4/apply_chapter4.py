@@ -39,6 +39,9 @@ def main():
     # print('apply test 4-2')
     # _apply_test_4_2()
 
+    print('apply generate text')
+    _apply_generate_text()
+
 
 def _get_batch():
     tokenizer = tiktoken.get_encoding("gpt2")
@@ -218,6 +221,24 @@ def _apply_test_4_2():
         total_size_mb = total_size_bytes / (1024 * 1024)
 
         print(f'Total size of parameters in MB: {total_size_mb:.2f}')
+
+
+def _apply_generate_text():
+    start_context = "Hello, I am"
+    tokenizer = tiktoken.get_encoding("gpt2")
+    encoded = tokenizer.encode(start_context)
+    print('encoded:', encoded)
+
+    encoded_tensor = torch.tensor(encoded).unsqueeze(0)
+    print('encoded tensor:', encoded_tensor.shape)
+
+    model = parts.GPTModel(GPT_CONFIG_124M)
+    model.eval()
+
+    out = parts.generate_text_simple(model, encoded_tensor, max_new_tokens=6, context_size=GPT_CONFIG_124M['context_length'])
+
+    print('output:', out, '\n')
+    print('output length:', len(out[0]))
 
 
 if __name__ == "__main__":
