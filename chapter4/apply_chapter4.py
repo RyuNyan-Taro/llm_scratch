@@ -149,10 +149,15 @@ def _apply_transformer():
 
 
 def _apply_gpt_model():
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    print(f"Using device: {device}")
+
     batch = _get_batch()
+    batch = batch.to(device)
 
     torch.manual_seed(123)
     model = parts.GPTModel(GPT_CONFIG_124M)
+    model.to(device)
     out = model(batch)
 
     print('Input batch:\n', batch)
