@@ -1,4 +1,4 @@
-__all__ = ['DummyGPTModel', 'LayerNorm']
+__all__ = ['DummyGPTModel', 'LayerNorm', 'GELU']
 
 import torch
 import torch.nn as nn
@@ -68,3 +68,17 @@ class LayerNorm(nn.Module):
         norm_x = (x - mean) / torch.sqrt(var + self.eps)
 
         return self.scale * norm_x + self.shift
+
+
+class GELU(nn.Module):
+
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        """Applies GELU nonlinearity using approximation"""
+
+        _theta = torch.sqrt(torch.tensor(2.0 / torch.pi)) * (x + 0.044715 * torch.pow(x, 3))
+
+        return 0.5 * x * (1 + torch.tanh(_theta))
+
