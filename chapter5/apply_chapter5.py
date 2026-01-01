@@ -27,11 +27,11 @@ def main():
 
     # _apply_calculate_loss()
 
-    _model = _apply_training_process()
+    _model, _optimizer = _apply_training_process()
 
     # _apply_decoding_ideas()
 
-    _apply_generate(_model)
+    _apply_generate(_model, _optimizer)
 
 
 def _get_loaders():
@@ -196,7 +196,7 @@ def _apply_training_process():
     epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
     parts.plot_losses(epochs_tensor, tokens_seen, train_losses, val_losses)
 
-    return model
+    return model, optimizer
 
 
 def _apply_decoding_ideas():
@@ -265,7 +265,7 @@ def _apply_decoding_ideas():
     print(topk_probas)
 
 
-def _apply_generate(model):
+def _apply_generate(model, optimizer):
     torch.manual_seed(123)
     tokenizer = tiktoken.encoding_for_model("gpt2")
 
@@ -277,6 +277,13 @@ def _apply_generate(model):
     print(parts.token_ids_to_text(token_ids, tokenizer))
 
     torch.save(model.state_dict(), 'model.pth')
+    torch.save(
+        {
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+        },
+        "model_and_optimizer.pth"
+    )
 
 
 if __name__ == '__main__':
