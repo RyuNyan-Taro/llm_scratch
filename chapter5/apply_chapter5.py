@@ -27,9 +27,11 @@ def main():
 
     # _apply_calculate_loss()
 
-    # _apply_training_process()
+    _model = _apply_training_process()
 
-    _apply_decoding_ideas()
+    # _apply_decoding_ideas()
+
+    _apply_generate(model)
 
 
 def _get_loaders():
@@ -194,6 +196,8 @@ def _apply_training_process():
     epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
     parts.plot_losses(epochs_tensor, tokens_seen, train_losses, val_losses)
 
+    return model
+
 
 def _apply_decoding_ideas():
 
@@ -259,6 +263,18 @@ def _apply_decoding_ideas():
 
     topk_probas = torch.softmax(new_logits, dim=0)
     print(topk_probas)
+
+
+def _apply_generate(model):
+    torch.manual_seed(123)
+    tokenizer = tiktoken.encoding_for_model("gpt2")
+
+    token_ids = parts.generate(
+        model,
+        idx=parts.text_to_token_ids("Every effort moves you", tokenizer=tokenizer),
+        max_new_tokens=15,
+        context_size=GPT_CONFIG_124M['context_length'], top_k=25, temperature=1.4)
+    print(parts.token_ids_to_text(token_ids, tokenizer))
 
 
 if __name__ == '__main__':
