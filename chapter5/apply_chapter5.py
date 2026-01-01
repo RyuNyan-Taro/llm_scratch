@@ -139,6 +139,20 @@ def _apply_calculate_loss():
     for _x, _y in val_loader:
         print(_x.shape, _y.shape)
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+    print(f'device: {device}')
+
+    torch.manual_seed(123)
+    model = GPTModel(GPT_CONFIG_124M)
+    model.to(device)
+
+    with torch.no_grad():
+        train_loss = parts.calc_loss_loader(train_loader, model, device)
+        val_loss = parts.calc_loss_loader(val_loader, model, device)
+
+    print(f'train loss: {train_loss}')
+    print(f'val loss: {val_loss}')
+
 
 if __name__ == '__main__':
     main()
