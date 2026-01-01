@@ -2,6 +2,7 @@ import time
 
 import tiktoken
 import torch
+from matplotlib import pyplot as plt
 
 from parts.chapter4parts import GPTModel, generate_text_simple
 
@@ -226,6 +227,26 @@ def _apply_decoding_ideas():
             print(f'{freq} x {inverse_vocab[i]}')
 
     print_sampled_tokens(probas)
+
+    temperatures = [1, 0.1, 5]
+    scaled_probas = [parts.softmax_with_temperature(next_token_logits, T) for T in temperatures]
+
+    x = torch.arange(len(vocab))
+    bar_width = 0.15
+
+    fig, ax = plt.subplots(figsize=(5, 3))
+
+    for i, T in enumerate(temperatures):
+        rects = ax.bar(x + i * bar_width, scaled_probas[i], bar_width, label=f'Temperature= {T}')
+
+    ax.set_ylabel('Probability')
+    ax.set_xticks(x)
+    ax.set_xticklabels(vocab.keys(), rotation=90)
+    ax.legend()
+    plt.tight_layout()
+    plt.show()
+
+
 
 
 if __name__ == '__main__':
