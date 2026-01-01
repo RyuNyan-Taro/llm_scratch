@@ -110,6 +110,35 @@ def _apply_calculate_loss():
     train_data = text[:split_idx]
     val_data = text[split_idx:]
 
+    torch.manual_seed(123)
+
+    train_loader = parts.create_dataloader_v1(
+        train_data,
+        batch_size=2,
+        max_length=GPT_CONFIG_124M['context_length'],
+        stride=GPT_CONFIG_124M['context_length'],
+        drop_last=True,
+        shuffle=True,
+        num_workers=0
+    )
+
+    val_loader = parts.create_dataloader_v1(
+        val_data,
+        batch_size=2,
+        max_length=GPT_CONFIG_124M['context_length'],
+        stride=GPT_CONFIG_124M['context_length'],
+        drop_last=False,
+        shuffle=False,
+        num_workers=0
+    )
+
+    print('train_loader:')
+    for _x, _y in train_loader:
+        print(_x.shape, _y.shape)
+    print('\nval_loader:')
+    for _x, _y in val_loader:
+        print(_x.shape, _y.shape)
+
 
 if __name__ == '__main__':
     main()
