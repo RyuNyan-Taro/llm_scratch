@@ -316,6 +316,7 @@ def _apply_saved_parameters():
 
     device = torch.device(
         'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+    device = 'cpu'
     print(f'device: {device}')
     tokenizer = tiktoken.get_encoding("gpt2")
 
