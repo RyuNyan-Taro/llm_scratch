@@ -5,7 +5,8 @@ __all__ = [
     'calc_loss_batch',
     'calc_loss_loader',
     'train_model_simple',
-    'plot_losses'
+    'plot_losses',
+    'softmax_with_temperature'
 ]
 
 import tiktoken
@@ -170,3 +171,9 @@ def plot_losses(epochs_seen, tokens_seen, train_losses, val_losses):
     ax2.set_xlabel('tokens seen')
     fig.tight_layout()
     plt.show()
+
+
+def softmax_with_temperature(logits, temperature: float):
+    scaled_logits = logits / temperature
+
+    return torch.softmax(scaled_logits, dim=0)
