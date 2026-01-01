@@ -87,4 +87,3 @@ def calc_loss_loader(data_loader, model, device, num_batches=None):
 
     return total_loss / num_batches
 
-    return total_loss / len(data_loader)
