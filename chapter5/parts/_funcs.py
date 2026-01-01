@@ -74,9 +74,9 @@ def calc_loss_loader(data_loader, model, device, num_batches=None):
     if len(data_loader) == 0:
         return float('nan')
     elif num_batches is None:
-        num_batched = len(data_loader)
+        num_batches = len(data_loader)
     else:
-        mun_batches = min(num_batches, len(data_loader))
+        num_batches = min(num_batches, len(data_loader))
 
     for i, (input_batch, target_batch) in enumerate(data_loader):
         if i < num_batches:
