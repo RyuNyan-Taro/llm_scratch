@@ -1,4 +1,4 @@
-__all__ = ['text_to_token_ids', 'token_ids_to_text', 'create_dataloader_v1', 'calc_loss_batch']
+__all__ = ['text_to_token_ids', 'token_ids_to_text', 'create_dataloader_v1', 'calc_loss_batch', 'calc_loss_loader']
 
 import tiktoken
 import torch
@@ -66,3 +66,25 @@ def calc_loss_batch(input_batch, target_batch, model, device):
     loss = nn.CrossEntropyLoss()(logits.view(-1, logits.shape[-1]), target_batch.view(-1))
 
     return loss
+
+
+def calc_loss_loader(data_loader, model, device, num_batches=None):
+    total_loss = 0
+
+    if len(data_loader) == 0:
+        return float('nan')
+    elif num_batches is None:
+        num_batched = len(data_loader)
+    else:
+        mun_batches = min(num_batches, len(data_loader))
+
+    for i, (input_batch, target_batch) in enumerate(data_loader):
+        if i < num_batches:
+            loss = calc_loss_batch(input_batch, target_batch, model, device)
+            total_loss += loss.item()
+        else:
+            break
+
+    return total_loss / num_batches
+
+    return total_loss / len(data_loader)
