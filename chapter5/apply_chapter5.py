@@ -257,6 +257,9 @@ def _apply_decoding_ideas():
     )
     print(new_logits)
 
+    topk_probas = torch.softmax(new_logits, dim=0)
+    print(topk_probas)
+
 
 if __name__ == '__main__':
     main()
