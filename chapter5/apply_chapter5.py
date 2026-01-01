@@ -276,6 +276,8 @@ def _apply_generate(model):
         context_size=GPT_CONFIG_124M['context_length'], top_k=25, temperature=1.4)
     print(parts.token_ids_to_text(token_ids, tokenizer))
 
+    torch.save(model.state_dict(), 'model.pth')
+
 
 if __name__ == '__main__':
     main()
