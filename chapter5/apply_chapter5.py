@@ -76,6 +76,20 @@ def _apply_loss():
     neg_avg_log_probas = avg_log_probas * -1
     print(f'neg avg log probas: {neg_avg_log_probas}')
 
+    print('logits shape:', logits.shape, '\n')
+    print('targets shape:', targets.shape, '\n')
+
+    logits_flat = logits.flatten(0, 1)
+    targets_flat = targets.flatten()
+    print('logits_flat:', logits_flat, '\n')
+    print('targets_flat:', targets_flat, '\n')
+
+    loss = torch.nn.CrossEntropyLoss()(logits_flat, targets_flat)
+    print(f'loss: {loss}')
+
+    loss = torch.nn.functional.cross_entropy(logits_flat, targets_flat)
+    print(f'loss: {loss}')
+
 
 if __name__ == '__main__':
     main()
