@@ -231,22 +231,31 @@ def _apply_decoding_ideas():
     temperatures = [1, 0.1, 5]
     scaled_probas = [parts.softmax_with_temperature(next_token_logits, T) for T in temperatures]
 
-    x = torch.arange(len(vocab))
-    bar_width = 0.15
+    # x = torch.arange(len(vocab))
+    # bar_width = 0.15
+    #
+    # fig, ax = plt.subplots(figsize=(5, 3))
+    #
+    # for i, T in enumerate(temperatures):
+    #     rects = ax.bar(x + i * bar_width, scaled_probas[i], bar_width, label=f'Temperature= {T}')
+    #
+    # ax.set_ylabel('Probability')
+    # ax.set_xticks(x)
+    # ax.set_xticklabels(vocab.keys(), rotation=90)
+    # ax.legend()
+    # plt.tight_layout()
+    # plt.show()
 
-    fig, ax = plt.subplots(figsize=(5, 3))
+    top_k = 3
+    top_logits, top_pos = torch.topk(next_token_logits, top_k)
+    print(top_logits, top_pos)
 
-    for i, T in enumerate(temperatures):
-        rects = ax.bar(x + i * bar_width, scaled_probas[i], bar_width, label=f'Temperature= {T}')
-
-    ax.set_ylabel('Probability')
-    ax.set_xticks(x)
-    ax.set_xticklabels(vocab.keys(), rotation=90)
-    ax.legend()
-    plt.tight_layout()
-    plt.show()
-
-
+    new_logits = torch.where(
+        condition=next_token_logits < top_logits[-1],
+        input=torch.tensor(float('-inf')),
+        other=next_token_logits
+    )
+    print(new_logits)
 
 
 if __name__ == '__main__':
