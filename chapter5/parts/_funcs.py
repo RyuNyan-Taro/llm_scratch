@@ -11,7 +11,7 @@ import tiktoken
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
-from chapter4parts import generate_text_simple
+from .chapter4parts import generate_text_simple
 
 
 def text_to_token_ids(text, tokenizer):
