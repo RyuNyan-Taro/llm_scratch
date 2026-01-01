@@ -105,5 +105,11 @@ def _apply_calculate_loss():
     print('characters:', total_characters)
     print('tokens:', total_tokens)
 
+    train_ratio = 0.9
+    split_idx = int(total_tokens * train_ratio)
+    train_data = text[:split_idx]
+    val_data = text[split_idx:]
+
+
 if __name__ == '__main__':
     main()
