@@ -27,12 +27,13 @@ def main():
 
     # _apply_calculate_loss()
 
-    _model, _optimizer = _apply_training_process()
+    # _model, _optimizer = _apply_training_process()
 
     # _apply_decoding_ideas()
 
-    _apply_generate(_model, _optimizer)
+    # _apply_generate(_model, _optimizer)
 
+    _apply_load_model()
 
 def _get_loaders():
     file_path = 'the-verdict.txt'
@@ -284,6 +285,14 @@ def _apply_generate(model, optimizer):
         },
         "model_and_optimizer.pth"
     )
+
+
+def _apply_load_model():
+    checkpoint = torch.load('model_and_optimizer.pth')
+    model = GPTModel(GPT_CONFIG_124M)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 
 if __name__ == '__main__':
