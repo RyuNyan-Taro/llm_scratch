@@ -35,7 +35,9 @@ def main():
 
     # _apply_load_model()
 
-    _apply_load_learned_parameters()
+    # _apply_load_learned_parameters()
+
+    _apply_saved_parameters()
 
 
 def _get_loaders():
@@ -305,6 +307,47 @@ def _apply_load_learned_parameters():
 
     print('Settings:', settings)
     print('Params:', params)
+
+    return settings, params
+
+
+def _apply_saved_parameters():
+    _, _params = _apply_load_learned_parameters()
+
+    device = torch.device(
+        'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+    print(f'device: {device}')
+    tokenizer = tiktoken.get_encoding("gpt2")
+
+    model_configs = {
+        "gpt2-small (124M)": {"emb_dim": 768, 'n_layers': 12, 'n_heads': 12},
+        "gpt2-medium (355M)": {"emb_dim": 1024, 'n_layers': 24, 'n_heads': 16},
+        "gpt2-large (774M)": {"emb_dim": 1280, 'n_layers': 36, 'n_heads': 20},
+        "gpt2-xl (1558M)": {"emb_dim": 1600, 'n_layers': 48, 'n_heads': 25}
+    }
+
+    model_name = "gpt2-small (124M)"
+    NEW_CONFIG = GPT_CONFIG_124M.copy()
+    NEW_CONFIG.update(model_configs[model_name])
+    NEW_CONFIG.update({'context_length': 1024, 'qkv_bias': True})
+
+    gpt = GPTModel(NEW_CONFIG)
+    gpt.eval()
+
+    parts.load_weights_into_gpt(gpt, _params)
+    gpt.to(device)
+
+    torch.manual_seed(123)
+
+    token_ids = parts.generate(
+        model=gpt,
+        idx=parts.text_to_token_ids("Every effort moves you", tokenizer=tokenizer).to(device),
+        max_new_tokens=25,
+        context_size=NEW_CONFIG['context_length'],
+        top_k=50, temperature=1.5
+    )
+
+    print(parts.token_ids_to_text(token_ids, tokenizer))
 
 
 if __name__ == '__main__':
