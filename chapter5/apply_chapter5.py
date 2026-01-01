@@ -195,6 +195,7 @@ def _apply_training_process():
 
 
 def _apply_decoding_ideas():
+
     vocab = {
         "closer": 0,
         "every": 1,
@@ -212,8 +213,19 @@ def _apply_decoding_ideas():
     next_token_logits = torch.tensor([4.51, 0.89, -1.90, 6.75, 1.63, -1.62, -1.89, 6.28, 1.79])
 
     probas = torch.softmax(next_token_logits, dim=0)
-    next_token_id = torch.argmax(probas).item()
+    next_token_id = torch.multinomial(probas, num_samples=1).item()
     print(inverse_vocab[next_token_id])
+
+    def print_sampled_tokens(probas):
+        torch.manual_seed(123)
+
+        sample = [torch.multinomial(probas, num_samples=1).item() for i in range(1_000)]
+        sampled_ids = torch.bincount(torch.tensor(sample))
+
+        for i, freq in enumerate(sampled_ids):
+            print(f'{freq} x {inverse_vocab[i]}')
+
+    print_sampled_tokens(probas)
 
 
 if __name__ == '__main__':
