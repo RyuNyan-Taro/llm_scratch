@@ -73,6 +73,9 @@ def _apply_loss():
     avg_log_probas = torch.mean(log_probas)
     print(f'avg log probas: {avg_log_probas}')
 
+    neg_avg_log_probas = avg_log_probas * -1
+    print(f'neg avg log probas: {neg_avg_log_probas}')
+
 
 if __name__ == '__main__':
     main()
