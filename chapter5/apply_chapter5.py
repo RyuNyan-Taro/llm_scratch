@@ -31,7 +31,7 @@ def main():
 
     # _apply_decoding_ideas()
 
-    _apply_generate(model)
+    _apply_generate(_model)
 
 
 def _get_loaders():
