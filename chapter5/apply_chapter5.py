@@ -2,6 +2,7 @@ import time
 
 import tiktoken
 import torch
+
 from chapter5.parts.chapter4parts import GPTModel, generate_text_simple
 
 import parts
@@ -23,7 +24,51 @@ def main():
 
     # _apply_loss()
 
-    _apply_calculate_loss()
+    # _apply_calculate_loss()
+
+    _apply_training_process()
+
+
+def _get_loaders():
+    file_path = 'the-verdict.txt'
+    with open(file_path, 'r') as f:
+        text = f.read()
+
+    tokenizer = tiktoken.get_encoding("gpt2")
+    total_characters = len(text)
+    total_tokens = len(tokenizer.encode(text))
+
+    print('characters:', total_characters)
+    print('tokens:', total_tokens)
+
+    train_ratio = 0.9
+    split_idx = int(total_tokens * train_ratio)
+    train_data = text[:split_idx]
+    val_data = text[split_idx:]
+
+    torch.manual_seed(123)
+
+    train_loader = parts.create_dataloader_v1(
+        train_data,
+        batch_size=2,
+        max_length=GPT_CONFIG_124M['context_length'],
+        stride=GPT_CONFIG_124M['context_length'],
+        drop_last=True,
+        shuffle=True,
+        num_workers=0
+    )
+
+    val_loader = parts.create_dataloader_v1(
+        val_data,
+        batch_size=2,
+        max_length=GPT_CONFIG_124M['context_length'],
+        stride=GPT_CONFIG_124M['context_length'],
+        drop_last=False,
+        shuffle=False,
+        num_workers=0
+    )
+
+    return train_loader, val_loader
 
 
 def _apply_text_verification():
@@ -96,43 +141,7 @@ def _apply_loss():
 
 
 def _apply_calculate_loss():
-    file_path = 'the-verdict.txt'
-    with open(file_path, 'r') as f:
-        text = f.read()
-
-    tokenizer = tiktoken.get_encoding("gpt2")
-    total_characters = len(text)
-    total_tokens = len(tokenizer.encode(text))
-
-    print('characters:', total_characters)
-    print('tokens:', total_tokens)
-
-    train_ratio = 0.9
-    split_idx = int(total_tokens * train_ratio)
-    train_data = text[:split_idx]
-    val_data = text[split_idx:]
-
-    torch.manual_seed(123)
-
-    train_loader = parts.create_dataloader_v1(
-        train_data,
-        batch_size=2,
-        max_length=GPT_CONFIG_124M['context_length'],
-        stride=GPT_CONFIG_124M['context_length'],
-        drop_last=True,
-        shuffle=True,
-        num_workers=0
-    )
-
-    val_loader = parts.create_dataloader_v1(
-        val_data,
-        batch_size=2,
-        max_length=GPT_CONFIG_124M['context_length'],
-        stride=GPT_CONFIG_124M['context_length'],
-        drop_last=False,
-        shuffle=False,
-        num_workers=0
-    )
+    train_loader, val_loader = _get_loaders()
 
     print('train_loader:')
     for _x, _y in train_loader:
@@ -157,6 +166,27 @@ def _apply_calculate_loss():
 
     print(f'train loss: {train_loss}')
     print(f'val loss: {val_loss}')
+
+
+def _apply_training_process():
+    train_loader, val_loader = _get_loaders()
+
+    torch.manual_seed(123)
+
+    device = torch.device(
+        'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+    print(f'device: {device}')
+
+    tokenizer = tiktoken.get_encoding("gpt2")
+
+    model = GPTModel(GPT_CONFIG_124M)
+    model.to(device)
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
+
+    num_epochs = 10
+    train_losses, val_losses, tokens_seen = parts.train_model_simple(
+        model, train_loader, val_loader, optimizer, device, num_epochs=num_epochs, eval_freq=5, eval_iter=5, start_context="Every effort moves you", tokenizer=tokenizer)
 
 
 if __name__ == '__main__':
