@@ -171,20 +171,20 @@ def _apply_calculate_loss():
 def _apply_training_process():
     train_loader, val_loader = _get_loaders()
 
-    torch.manual_seed(123)
-
     device = torch.device(
         'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
     print(f'device: {device}')
 
     tokenizer = tiktoken.get_encoding("gpt2")
 
+    torch.manual_seed(123)
+
     model = GPTModel(GPT_CONFIG_124M)
     model.to(device)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
 
-    num_epochs = 10
+    num_epochs = 20
     train_losses, val_losses, tokens_seen = parts.train_model_simple(
         model, train_loader, val_loader, optimizer, device, num_epochs=num_epochs, eval_freq=5, eval_iter=5, start_context="Every effort moves you", tokenizer=tokenizer)
 

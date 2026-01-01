@@ -71,7 +71,7 @@ def calc_loss_batch(input_batch, target_batch, model, device):
     target_batch = target_batch.to(device)
 
     logits = model(input_batch)
-    loss = nn.CrossEntropyLoss()(logits.view(-1, logits.shape[-1]), target_batch.view(-1))
+    loss = nn.functional.cross_entropy(logits.flatten(0, 1), target_batch.flatten())
 
     return loss
 
@@ -120,7 +120,7 @@ def train_model_simple(model, train_loader, val_loader, optimizer, device, num_e
                 train_losses.append(train_loss)
                 val_losses.append(val_loss)
                 track_tokens_seen.append(tokens_seen)
-                print(f"Epoch {epoch+1}: train loss: {train_loss:.2f}, val loss: {val_loss:.2f}")
+                print(f"Epoch {epoch+1}: (Step {global_step:06d}) train loss: {train_loss:.3}, val loss: {val_loss:.3f}")
 
         generate_and_print_sample(model, tokenizer, device, start_context)
 
@@ -148,6 +148,6 @@ def generate_and_print_sample(model, tokenizer, device, start_context):
         token_ids = generate_text_simple(model, encoded, max_new_tokens=50, context_size=context_size)
 
     decoded_text = token_ids_to_text(token_ids, tokenizer)
-    print(f'Decoded text:\n{decoded_text}')
+    print(f'Decoded text:\n{decoded_text.replace("\n", " ")}')
 
     model.train()
