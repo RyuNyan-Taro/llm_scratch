@@ -2,7 +2,7 @@ import time
 
 import tiktoken
 import torch
-from chapter4parts import GPTModel, generate_text_simple
+from chapter5.parts.chapter4parts import GPTModel, generate_text_simple
 
 import parts
 

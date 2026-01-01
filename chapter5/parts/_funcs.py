@@ -11,6 +11,7 @@ import tiktoken
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
+from chapter4parts import generate_text_simple
 
 
 def text_to_token_ids(text, tokenizer):
@@ -124,3 +125,29 @@ def train_model_simple(model, train_loader, val_loader, optimizer, device, num_e
         generate_and_print_sample(model, tokenizer, device, start_context)
 
     return train_losses, val_losses, track_tokens_seen
+
+
+def evaluate_model(model, train_loader, val_loader, device, eval_iter):
+    model.eval()
+    with torch.no_grad():
+        train_loss = calc_loss_loader(train_loader, model, device, eval_iter)
+        val_loss = calc_loss_loader(val_loader, model, device, eval_iter)
+
+    model.train()
+
+    return train_loss, val_loss
+
+
+def generate_and_print_sample(model, tokenizer, device, start_context):
+    model.eval()
+
+    context_size = model.pos_emb.weight.shape[0]
+    encoded = text_to_token_ids(start_context, tokenizer).to(device)
+
+    with torch.no_grad():
+        token_ids = generate_text_simple(model, encoded, max_new_tokens=50, context_size=context_size)
+
+    decoded_text = token_ids_to_text(token_ids, tokenizer)
+    print(f'Decoded text:\n{decoded_text}')
+
+    model.train()
