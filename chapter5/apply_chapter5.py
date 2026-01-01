@@ -1,3 +1,5 @@
+import time
+
 import tiktoken
 import torch
 from chapter4parts import GPTModel, generate_text_simple
@@ -146,9 +148,12 @@ def _apply_calculate_loss():
     model = GPTModel(GPT_CONFIG_124M)
     model.to(device)
 
+    _time = time.time()
     with torch.no_grad():
         train_loss = parts.calc_loss_loader(train_loader, model, device)
         val_loss = parts.calc_loss_loader(val_loader, model, device)
+
+    print(f'time: {time.time() - _time:.2f}s')
 
     print(f'train loss: {train_loss}')
     print(f'val loss: {val_loss}')
