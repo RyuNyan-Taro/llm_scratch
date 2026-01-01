@@ -19,7 +19,9 @@ def main():
 
     # _apply_text_verification()
 
-    _apply_loss()
+    # _apply_loss()
+
+    _apply_calculate_loss()
 
 
 def _apply_text_verification():
@@ -90,6 +92,18 @@ def _apply_loss():
     loss = torch.nn.functional.cross_entropy(logits_flat, targets_flat)
     print(f'loss: {loss}')
 
+
+def _apply_calculate_loss():
+    file_path = 'the-verdict.txt'
+    with open(file_path, 'r') as f:
+        text = f.read()
+
+    tokenizer = tiktoken.get_encoding("gpt2")
+    total_characters = len(text)
+    total_tokens = len(tokenizer.encode(text))
+
+    print('characters:', total_characters)
+    print('tokens:', total_tokens)
 
 if __name__ == '__main__':
     main()
