@@ -188,7 +188,8 @@ def _apply_training_process():
     train_losses, val_losses, tokens_seen = parts.train_model_simple(
         model, train_loader, val_loader, optimizer, device, num_epochs=num_epochs, eval_freq=5, eval_iter=5, start_context="Every effort moves you", tokenizer=tokenizer)
 
-
+    epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
+    parts.plot_losses(epochs_tensor, tokens_seen, train_losses, val_losses)
 
 
 if __name__ == '__main__':
