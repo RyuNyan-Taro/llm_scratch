@@ -42,7 +42,7 @@ def _get_loaders():
     print('tokens:', total_tokens)
 
     train_ratio = 0.9
-    split_idx = int(total_tokens * train_ratio)
+    split_idx = int(train_ratio * len(text))
     train_data = text[:split_idx]
     val_data = text[split_idx:]
 
@@ -174,17 +174,16 @@ def _apply_training_process():
     device = torch.device(
         'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
     print(f'device: {device}')
+    device = 'cpu'
 
     tokenizer = tiktoken.get_encoding("gpt2")
-
-    torch.manual_seed(123)
 
     model = GPTModel(GPT_CONFIG_124M)
     model.to(device)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
 
-    num_epochs = 20
+    num_epochs = 10
     train_losses, val_losses, tokens_seen = parts.train_model_simple(
         model, train_loader, val_loader, optimizer, device, num_epochs=num_epochs, eval_freq=5, eval_iter=5, start_context="Every effort moves you", tokenizer=tokenizer)
 
