@@ -5,7 +5,7 @@ import torch
 from matplotlib import pyplot as plt
 
 from parts.chapter4parts import GPTModel, generate_text_simple
-
+from parts import gpt_download
 import parts
 
 GPT_CONFIG_124M = {
@@ -33,7 +33,10 @@ def main():
 
     # _apply_generate(_model, _optimizer)
 
-    _apply_load_model()
+    # _apply_load_model()
+
+    _apply_load_learned_parameters()
+
 
 def _get_loaders():
     file_path = 'the-verdict.txt'
@@ -293,6 +296,15 @@ def _apply_load_model():
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+
+def _apply_load_learned_parameters():
+    settings, params = gpt_download.download_and_load_gpt2(
+        model_size="124M", models_dir='gpt2'
+    )
+
+    print('Settings:', settings)
+    print('Params:', params)
 
 
 if __name__ == '__main__':
