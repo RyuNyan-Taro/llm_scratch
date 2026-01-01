@@ -4,7 +4,8 @@ __all__ = [
     'create_dataloader_v1',
     'calc_loss_batch',
     'calc_loss_loader',
-    'train_model_simple'
+    'train_model_simple',
+    'plot_losses'
 ]
 
 import tiktoken
@@ -12,6 +13,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from .chapter4parts import generate_text_simple
+import matplotlib.pyplot as plt
 
 
 def text_to_token_ids(text, tokenizer):
@@ -151,3 +153,20 @@ def generate_and_print_sample(model, tokenizer, device, start_context):
     print(f'Decoded text:\n{decoded_text.replace("\n", " ")}')
 
     model.train()
+
+
+def plot_losses(epochs_seen, tokens_seen, train_losses, val_losses):
+    fig, ax1 = plt.subplots(figsize=(5, 3))
+    ax1.plot(epochs_seen, train_losses, label='train loss')
+    ax1.plot(epochs_seen, val_losses, label='val loss')
+    ax1.set_xlabel('epoch')
+    ax1.set_ylabel('loss')
+    ax1.legend(loc="upper right")
+
+    ax1.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
+    ax2 = ax1.twiny()
+    ax2.plot(tokens_seen, train_losses, alpha=0)
+    ax2.set_xlabel('tokens seen')
+    fig.tight_layout()
+    plt.show()
