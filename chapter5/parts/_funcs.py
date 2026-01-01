@@ -1,7 +1,8 @@
-__all__ = ['text_to_token_ids', 'token_ids_to_text', 'create_dataloader_v1']
+__all__ = ['text_to_token_ids', 'token_ids_to_text', 'create_dataloader_v1', 'calc_loss_batch']
 
 import tiktoken
 import torch
+from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
 
@@ -55,3 +56,13 @@ class _GPTDatasetV1(Dataset):
 
     def __getitem__(self, idx):
         return self.input_ids[idx], self.target_ids[idx]
+
+
+def calc_loss_batch(input_batch, target_batch, model, device):
+    input_batch = input_batch.to(device)
+    target_batch = target_batch.to(device)
+
+    logits = model(input_batch)
+    loss = nn.CrossEntropyLoss()(logits.view(-1, logits.shape[-1]), target_batch.view(-1))
+
+    return loss
