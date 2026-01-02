@@ -77,12 +77,12 @@ def train_classifier_simple(model, train_loader, val_loader, optimizer, device, 
                 val_losses.append(val_loss)
                 print(f'Epoch {epoch+1}: (Step {global_step:06d}) train loss: {train_loss:.3}, val loss: {val_loss:.3f}')
 
-            train_accuracy = calc_accuracy_loader(train_loader, model, device, num_batches=eval_iter)
-            val_accuracy = calc_accuracy_loader(val_loader, model, device, num_batches=eval_iter)
+        train_accuracy = calc_accuracy_loader(train_loader, model, device, num_batches=eval_iter)
+        val_accuracy = calc_accuracy_loader(val_loader, model, device, num_batches=eval_iter)
 
-            print(f'train accuracy: {train_accuracy*100:.2f}% | ', end="")
-            print(f'val accuracy: {val_accuracy*100:.2f}%')
-            train_accs.append(train_accuracy)
-            val_accs.append(val_accuracy)
+        print(f'train accuracy: {train_accuracy*100:.2f}% | ', end="")
+        print(f'val accuracy: {val_accuracy*100:.2f}%')
+        train_accs.append(train_accuracy)
+        val_accs.append(val_accuracy)
 
     return train_losses, val_losses, train_accs, val_accs, examples_seen
