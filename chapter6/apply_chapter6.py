@@ -9,7 +9,9 @@ import parts
 
 def main():
 
-    _apply_file_download()
+    # _apply_file_download()
+
+    _apply_dataset()
 
 
 def _get_tokenizer():
@@ -54,6 +56,14 @@ def _apply_file_download():
 
     for _file_name, _df in zip(['train', 'validation', 'test'], [train_df, validation_df, test_df]):
         _df.to_csv(f'{_file_name}.csv', index=None)
+
+
+def _apply_dataset():
+    train_dataset = parts.SpamDataset(
+        csv_file='train.csv', max_length=None, tokenizer=_get_tokenizer()
+    )
+
+    print(train_dataset.max_length)
 
 
 if __name__ == "__main__":
