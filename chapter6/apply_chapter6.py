@@ -142,6 +142,7 @@ def _apply_load_gpt():
     CHOOSE_MODEL = "gpt2-small (124M)"
     BASE_CONFIG = _get_base_config(CHOOSE_MODEL)
     tokenizer = _get_tokenizer()
+    num_classes = 2
 
     model_size = CHOOSE_MODEL.split(' ')[-1].lstrip('(').rstrip(')')
     settings, params = gpt_download.download_and_load_gpt2(model_size=model_size, models_dir='gpt2')
@@ -161,6 +162,18 @@ def _apply_load_gpt():
     )
     token_ids = generate_text_simple(model, text_to_token_ids(text_2, tokenizer), max_new_tokens=23, context_size=BASE_CONFIG['context_length'])
     print(token_ids_to_text(token_ids, tokenizer))
+
+    for param in model.parameters():
+        param.requires_grad = False
+
+    torch.manual_seed(123)
+    model.out_head = torch.nn.Linear(in_features=BASE_CONFIG['emb_dim'], out_features=num_classes)
+
+    for param in model.trf_blocks[-1].parameters():
+        param.requires_grad = True
+
+    for param in model.final_norm.parameters():
+        param.requires_grad = True
 
     print(model)
 
