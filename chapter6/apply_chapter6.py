@@ -255,6 +255,15 @@ def _apply_tuning_model():
     print(f'val accuracy: {val_accuracy*100:.2f}')
     print(f'test accuracy: {test_accuracy*100:.2f}')
 
+    with torch.no_grad():
+        train_loss = parts.calc_loss_loader(train_loader, model, device, num_batches=5)
+        val_loss = parts.calc_loss_loader(val_loader, model, device, num_batches=5)
+        test_loss = parts.calc_loss_loader(test_loader, model, device, num_batches=5)
+
+    print(f'train loss: {train_loss}')
+    print(f'val loss: {val_loss}')
+    print(f'test loss: {test_loss}')
+
 
 if __name__ == "__main__":
     main()
