@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 import pandas as pd
@@ -264,6 +265,21 @@ def _apply_tuning_model():
     print(f'train loss: {train_loss}')
     print(f'val loss: {val_loss}')
     print(f'test loss: {test_loss}')
+
+    start_time = time.time()
+    torch.manual_seed(123)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
+    num_epochs = 5
+
+    train_losses, val_losses, train_accs, val_accs, examples_seen = \
+        parts.train_classifier_simple(
+            model, train_loader, val_loader, optimizer, device,
+            num_epochs=num_epochs, eval_freq=50, eval_iter=5)
+
+    end_time = time.time()
+    execution_time_minutes = (end_time - start_time) / 60
+
+    print(f'training completed in {execution_time_minutes:.2f} minutes.')
 
 
 if __name__ == "__main__":
