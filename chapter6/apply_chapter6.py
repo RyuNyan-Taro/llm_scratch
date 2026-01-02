@@ -8,8 +8,8 @@ from matplotlib import pyplot as plt
 
 import parts
 from parts.chapter5parts import gpt_download
-from parts.chapter5parts import load_weights_into_gpt
-from parts.chapter5parts.chapter4parts import GPTModel
+from parts.chapter5parts import load_weights_into_gpt, text_to_token_ids, token_ids_to_text
+from parts.chapter5parts.chapter4parts import GPTModel, generate_text_simple
 
 
 def main():
@@ -139,7 +139,7 @@ def _apply_dataset():
 
 
 def _apply_load_gpt():
-    CHOOSE_MODEL = "gpt2-medium (355M)"
+    CHOOSE_MODEL = "gpt2-small (124M)"
     BASE_CONFIG = _get_base_config(CHOOSE_MODEL)
 
     model_size = CHOOSE_MODEL.split(' ')[-1].lstrip('(').rstrip(')')
