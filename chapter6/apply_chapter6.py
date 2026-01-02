@@ -177,6 +177,19 @@ def _apply_load_gpt():
 
     print(model)
 
+    inputs = tokenizer.encode("Do you have time")
+    inputs = torch.tensor(inputs).unsqueeze(0)
+    print("inputs:", inputs)
+    print('inputs dimension:', inputs.shape)
+
+    with torch.no_grad():
+        outputs = model(inputs)
+
+    print("outputs:", outputs)
+    print('outputs dimension:', outputs.shape)
+
+    print('last output:', outputs[:, -1, :].squeeze(0))
+
 
 if __name__ == "__main__":
     main()
