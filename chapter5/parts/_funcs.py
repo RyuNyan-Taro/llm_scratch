@@ -77,7 +77,7 @@ def calc_loss_batch(input_batch, target_batch, model, device):
     target_batch = target_batch.to(device)
 
     logits = model(input_batch)[:, -1, :]
-    loss = nn.functional.cross_entropy(logits.flatten(0, 1), target_batch.flatten())
+    loss = nn.functional.cross_entropy(logits, target_batch)
 
     return loss
 
