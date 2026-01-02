@@ -1,0 +1,346 @@
+import time
+from pathlib import Path
+
+import pandas as pd
+import tiktoken
+import torch
+from torch.utils.data import DataLoader
+from matplotlib import pyplot as plt
+
+import parts
+from parts.chapter5parts import gpt_download
+from parts.chapter5parts import load_weights_into_gpt, text_to_token_ids, token_ids_to_text
+from parts.chapter5parts.chapter4parts import GPTModel, generate_text_simple
+
+
+def main():
+
+    # _apply_file_download()
+
+    # _apply_dataset()
+
+    # _apply_load_gpt()
+
+    _apply_tuning_model()
+
+    # _test_learned_model()
+
+
+def _get_tokenizer():
+    return tiktoken.get_encoding("gpt2")
+
+
+def _get_modified_model():
+    CHOOSE_MODEL = "gpt2-small (124M)"
+    BASE_CONFIG = _get_base_config(CHOOSE_MODEL)
+    num_classes = 2
+
+    model_size = CHOOSE_MODEL.split(' ')[-1].lstrip('(').rstrip(')')
+    settings, params = gpt_download.download_and_load_gpt2(model_size=model_size, models_dir='gpt2')
+
+    model = GPTModel(BASE_CONFIG)
+    load_weights_into_gpt(model, params)
+    model.eval()
+
+    for param in model.parameters():
+        param.requires_grad = False
+
+    torch.manual_seed(123)
+    model.out_head = torch.nn.Linear(in_features=BASE_CONFIG['emb_dim'], out_features=num_classes)
+
+    for param in model.trf_blocks[-1].parameters():
+        param.requires_grad = True
+
+    for param in model.final_norm.parameters():
+        param.requires_grad = True
+
+    return model
+
+
+def _get_split_data_loader(tokenizer):
+    train_dataset = parts.SpamDataset(
+        csv_file='train.csv', max_length=None, tokenizer=tokenizer
+    )
+
+    print(train_dataset.max_length)
+
+    val_dataset = parts.SpamDataset(
+        csv_file='validation.csv', max_length=train_dataset.max_length, tokenizer=tokenizer
+    )
+
+    test_dataset = parts.SpamDataset(
+        csv_file='test.csv', max_length=train_dataset.max_length, tokenizer=tokenizer
+    )
+
+    num_workers = 0
+    batch_size = 8
+    torch.manual_seed(123)
+
+    train_loader = DataLoader(
+        dataset=train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        drop_last=True
+    )
+
+    val_loader = DataLoader(
+        dataset=val_dataset,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        drop_last=False
+    )
+
+    test_loader = DataLoader(
+        dataset=test_dataset,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        drop_last=False
+    )
+
+    return train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset
+
+
+def _get_base_config(choose_model: str = "gpt2-small (124M)"):
+    INPUT_PROMPT = 'Every effort moves'
+
+    BASE_CONFIG = {
+        'vocab_size': 50257,
+        'context_length': 1024,
+        'drop_rate': 0.0,
+        'qkv_bias': True,
+    }
+
+    model_configs = {
+        "gpt2-small (124M)": {"emb_dim": 768, 'n_layers': 12, 'n_heads': 12},
+        "gpt2-medium (355M)": {"emb_dim": 1024, 'n_layers': 24, 'n_heads': 16},
+        "gpt2-large (774M)": {"emb_dim": 1280, 'n_layers': 36, 'n_heads': 20},
+        "gpt2-xl (1558M)": {"emb_dim": 1600, 'n_layers': 48, 'n_heads': 25}
+    }
+
+    BASE_CONFIG.update(model_configs[choose_model])
+
+    return BASE_CONFIG
+
+
+def _apply_file_download():
+    url = 'https://archive.ics.uci.edu/static/public/228/sms+spam+collection.zip'
+    zip_path = 'sms_spam_collection.zip'
+    extracted_path = 'sms_spam_collection'
+    data_file_path = Path(extracted_path) / 'SMSSpamCollection.tsv'
+
+    parts.download_and_unzip_spam_data(url, zip_path, extracted_path, data_file_path)
+
+    df = pd.read_csv(data_file_path, sep='\t', header=None, names=['Label', 'Text'])
+
+    print(df.info())
+    print(df)
+
+    # df['TextSize'] = df['Text'].str.len()
+    # df['WordCount'] = df['Text'].str.split().str.len()
+    #
+    # fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+    #
+    # for _label, _group in df.groupby('Label'):
+    #     axes[0].hist(_group['TextSize'], label=_label, range=(0, 600), bins=50, alpha=0.5)
+    #     axes[1].hist(_group['WordCount'], label=_label, range=(0, 100), bins=25, alpha=0.5)
+    # axes[0].legend()
+    # axes[0].set_title('Text Size Distribution by Label')
+    # axes[1].set_title('Word Count Distribution by Label')
+    #
+    # plt.show()
+
+    print(df['Label'].value_counts())
+
+    balanced_df = parts.create_balanced_dataset(df)
+    print(balanced_df['Label'].value_counts())
+
+    balanced_df['Label'] = balanced_df['Label'].map({'ham': 0, 'spam': 1})
+
+    train_df, validation_df, test_df = parts.random_split(balanced_df, 0.7, 0.1)
+
+    for _file_name, _df in zip(['train', 'validation', 'test'], [train_df, validation_df, test_df]):
+        _df.to_csv(f'{_file_name}.csv', index=None)
+
+
+def _apply_dataset():
+    tokenizer = _get_tokenizer()
+
+    train_loader, val_loader, test_loader = _get_split_data_loader(tokenizer)
+
+    for input_batch, target_batch in train_loader:
+        pass
+    print(input_batch.shape, target_batch.shape)
+
+    for _loader in [train_loader, val_loader, test_loader]:
+        print(len(_loader))
+
+
+def _apply_load_gpt():
+    CHOOSE_MODEL = "gpt2-small (124M)"
+    BASE_CONFIG = _get_base_config(CHOOSE_MODEL)
+    tokenizer = _get_tokenizer()
+    num_classes = 2
+
+    model_size = CHOOSE_MODEL.split(' ')[-1].lstrip('(').rstrip(')')
+    settings, params = gpt_download.download_and_load_gpt2(model_size=model_size, models_dir='gpt2')
+
+    model = GPTModel(BASE_CONFIG)
+    load_weights_into_gpt(model, params)
+    model.eval()
+
+    text_1 = "Every effort moves you"
+    token_ids = generate_text_simple(model, text_to_token_ids(text_1, tokenizer), max_new_tokens=15, context_size=BASE_CONFIG['context_length'])
+    print(token_ids_to_text(token_ids, tokenizer))
+
+    text_2 = (
+        "Is the following text 'spam'? Answer with 'yes' or 'no':"
+        " 'You are a winner you have been specially"
+        " selected to receive $1000 cash or a $2000 award.'"
+    )
+    token_ids = generate_text_simple(model, text_to_token_ids(text_2, tokenizer), max_new_tokens=23, context_size=BASE_CONFIG['context_length'])
+    print(token_ids_to_text(token_ids, tokenizer))
+
+    for param in model.parameters():
+        param.requires_grad = False
+
+    torch.manual_seed(123)
+    model.out_head = torch.nn.Linear(in_features=BASE_CONFIG['emb_dim'], out_features=num_classes)
+
+    for param in model.trf_blocks[-1].parameters():
+        param.requires_grad = True
+
+    for param in model.final_norm.parameters():
+        param.requires_grad = True
+
+    print(model)
+
+    inputs = tokenizer.encode("Do you have time")
+    inputs = torch.tensor(inputs).unsqueeze(0)
+    print("inputs:", inputs)
+    print('inputs dimension:', inputs.shape)
+
+    with torch.no_grad():
+        outputs = model(inputs)
+
+    print("outputs:", outputs)
+    print('outputs dimension:', outputs.shape)
+
+    print('last output:', outputs[:, -1, :].squeeze(0))
+
+    probas = torch.softmax(outputs[:, -1, :], dim=-1)
+    label = torch.argmax(probas)
+    print(f'class label: {label.item()}')
+
+    logits = outputs[:, -1, :]
+    label = torch.argmax(logits)
+    print(f'logits label: {label.item()}')
+
+
+def _apply_tuning_model():
+    """Tunes model; evaluates performance; saves trained weights"""
+
+    tokenizer = _get_tokenizer()
+    train_loader, val_loader, test_loader, train_dataset, _, _ = _get_split_data_loader(tokenizer)
+    model = _get_modified_model()
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('mps')
+    model.to(device)
+
+    torch.manual_seed(123)
+
+    train_accuracy = parts.calc_accuracy_loader(train_loader, model, device, num_batches=10)
+    val_accuracy = parts.calc_accuracy_loader(val_loader, model, device, num_batches=10)
+    test_accuracy = parts.calc_accuracy_loader(test_loader, model, device, num_batches=10)
+
+    print(f'train accuracy: {train_accuracy*100:.2f}')
+    print(f'val accuracy: {val_accuracy*100:.2f}')
+    print(f'test accuracy: {test_accuracy*100:.2f}')
+
+    with torch.no_grad():
+        train_loss = parts.calc_loss_loader(train_loader, model, device, num_batches=5)
+        val_loss = parts.calc_loss_loader(val_loader, model, device, num_batches=5)
+        test_loss = parts.calc_loss_loader(test_loader, model, device, num_batches=5)
+
+    print(f'train loss: {train_loss}')
+    print(f'val loss: {val_loss}')
+    print(f'test loss: {test_loss}')
+
+    start_time = time.time()
+    torch.manual_seed(123)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
+    num_epochs = 7
+
+    train_losses, val_losses, train_accs, val_accs, examples_seen = \
+        parts.train_classifier_simple(
+            model, train_loader, val_loader, optimizer, device,
+            num_epochs=num_epochs, eval_freq=50, eval_iter=5)
+
+    end_time = time.time()
+    execution_time_minutes = (end_time - start_time) / 60
+
+    print(f'training completed in {execution_time_minutes:.2f} minutes.')
+
+    epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
+    examples_seen_tensor = torch.linspace(0, examples_seen, len(train_losses))
+
+    parts.plot_values(epochs_tensor, examples_seen_tensor, train_losses, val_losses)
+
+    epochs_tensor = torch.linspace(0, num_epochs, len(train_accs))
+    examples_seen_tensor = torch.linspace(0, examples_seen, len(train_accs))
+
+    parts.plot_values(epochs_tensor, examples_seen_tensor, train_accs, val_accs, label='accuracy')
+
+    train_accuracy = parts.calc_accuracy_loader(train_loader, model, device)
+    val_accuracy = parts.calc_accuracy_loader(val_loader, model, device)
+    test_accuracy = parts.calc_accuracy_loader(test_loader, model, device)
+
+    print(f'train accuracy: {train_accuracy*100:.2f}')
+    print(f'val accuracy: {val_accuracy*100:.2f}')
+    print(f'test accuracy: {test_accuracy*100:.2f}')
+
+    text_1 = (
+        "You are a winner ou have been specially"
+        " selected to receive $1000 cash or a $2000 award."
+    )
+
+    print(parts.classify_review(text_1, model, tokenizer, device, max_length=train_dataset.max_length))
+
+    text_2 = (
+        "Hey, just wanted to check if we're still on"
+        " for dinner tonight? Let me know!"
+    )
+
+    print(parts.classify_review(text_2, model, tokenizer, device, max_length=train_dataset.max_length))
+
+    torch.save(model.state_dict(), "review_classifier.pth")
+
+
+def _test_learned_model():
+    tokenizer = _get_tokenizer()
+    _, _, _, train_dataset, _, _ = _get_split_data_loader(tokenizer)
+    model = _get_modified_model()
+    device = torch.device('cpu')
+    model.to(device)
+
+    model_state_dict = torch.load("review_classifier.pth", map_location=device, weights_only=True)
+    model.load_state_dict(model_state_dict)
+
+    text_1 = (
+        "You are a winner you have been specially"
+        " selected to receive $1000 cash or a $2000 award."
+    )
+
+    print(parts.classify_review(text_1, model, tokenizer, device, max_length=train_dataset.max_length))
+
+    text_2 = (
+        "Hey, just wanted to check if we're still on"
+        " for dinner tonight? Let me know!"
+    )
+
+    print(parts.classify_review(text_2, model, tokenizer, device, max_length=train_dataset.max_length))
+
+
+if __name__ == "__main__":
+    main()
