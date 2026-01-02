@@ -31,7 +31,6 @@ def _get_tokenizer():
 def _get_modified_model():
     CHOOSE_MODEL = "gpt2-small (124M)"
     BASE_CONFIG = _get_base_config(CHOOSE_MODEL)
-    tokenizer = _get_tokenizer()
     num_classes = 2
 
     model_size = CHOOSE_MODEL.split(' ')[-1].lstrip('(').rstrip(')')
@@ -52,8 +51,6 @@ def _get_modified_model():
 
     for param in model.final_norm.parameters():
         param.requires_grad = True
-
-    print(model)
 
     return model
 
@@ -244,7 +241,7 @@ def _apply_tuning_model():
     model = _get_modified_model()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # device = torch.device('mps')
+    device = torch.device('mps')
     model.to(device)
 
     torch.manual_seed(123)
