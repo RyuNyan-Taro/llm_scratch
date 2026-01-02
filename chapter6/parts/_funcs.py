@@ -2,7 +2,7 @@ __all__ = ['calc_accuracy_loader', 'calc_loss_loader']
 
 import torch
 
-from chapter5parts import calc_loss_batch
+from .chapter5parts import calc_loss_batch
 
 
 def calc_accuracy_loader(data_loader, model, device, num_batches=None):
