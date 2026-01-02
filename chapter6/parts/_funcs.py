@@ -114,7 +114,7 @@ def classify_review(text, model, tokenizer, device, max_length=None, pad_token_i
     input_ids = tokenizer.encode(text)
     supported_context_length = model.pos_emb.weight.shape[1]
 
-    inputs_ids = input_ids[:min(max_length, supported_context_length)]
+    input_ids = input_ids[:min(max_length, supported_context_length)]
 
     input_ids += [pad_token_id] * (max_length - len(input_ids))
 
