@@ -1,4 +1,4 @@
-__all__ = ['download_and_unzip_spam_data', 'create_balanced_dataset']
+__all__ = ['download_and_unzip_spam_data', 'create_balanced_dataset', 'random_split']
 
 import urllib.request
 import zipfile
@@ -32,3 +32,15 @@ def create_balanced_dataset(df: pd.DataFrame):
     balanced_df = pd.concat([ham_subset, df[df['Label'] == 'spam']])
 
     return balanced_df
+
+
+def random_split(df: pd.DataFrame, train_frac, validation_frac):
+    df = df.sample(frac=1, random_state=123).reset_index(drop=True)
+    train_end = int(train_frac * len(df))
+    validation_end = train_end + int(validation_frac * len(df))
+
+    train_df = df[:train_end]
+    validation_df = df[train_end:validation_end]
+    test_df = df[validation_end:]
+
+    return train_df, validation_df, test_df

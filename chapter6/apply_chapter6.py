@@ -43,6 +43,8 @@ def _apply_file_download():
     balanced_df = parts.create_balanced_dataset(df)
     print(balanced_df['Label'].value_counts())
 
+    balanced_df['Label'] = balanced_df['Label'].map({'ham': 0, 'spam': 1})
+
 
 if __name__ == "__main__":
     main()
