@@ -18,11 +18,87 @@ def main():
 
     # _apply_dataset()
 
-    _apply_load_gpt()
+    # _apply_load_gpt()
+
+    _apply_tuning_model()
 
 
 def _get_tokenizer():
     return tiktoken.get_encoding("gpt2")
+
+
+def _get_modified_model():
+    CHOOSE_MODEL = "gpt2-small (124M)"
+    BASE_CONFIG = _get_base_config(CHOOSE_MODEL)
+    tokenizer = _get_tokenizer()
+    num_classes = 2
+
+    model_size = CHOOSE_MODEL.split(' ')[-1].lstrip('(').rstrip(')')
+    settings, params = gpt_download.download_and_load_gpt2(model_size=model_size, models_dir='gpt2')
+
+    model = GPTModel(BASE_CONFIG)
+    load_weights_into_gpt(model, params)
+    model.eval()
+
+    for param in model.parameters():
+        param.requires_grad = False
+
+    torch.manual_seed(123)
+    model.out_head = torch.nn.Linear(in_features=BASE_CONFIG['emb_dim'], out_features=num_classes)
+
+    for param in model.trf_blocks[-1].parameters():
+        param.requires_grad = True
+
+    for param in model.final_norm.parameters():
+        param.requires_grad = True
+
+    print(model)
+
+    return model
+
+
+def _get_split_data_loader(tokenizer):
+    train_dataset = parts.SpamDataset(
+        csv_file='train.csv', max_length=None, tokenizer=tokenizer
+    )
+
+    print(train_dataset.max_length)
+
+    val_dataset = parts.SpamDataset(
+        csv_file='validation.csv', max_length=train_dataset.max_length, tokenizer=tokenizer
+    )
+
+    test_dataset = parts.SpamDataset(
+        csv_file='test.csv', max_length=train_dataset.max_length, tokenizer=tokenizer
+    )
+
+    num_workers = 0
+    batch_size = 8
+    torch.manual_seed(123)
+
+    train_loader = DataLoader(
+        dataset=train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        drop_last=True
+    )
+
+    val_loader = DataLoader(
+        dataset=val_dataset,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        drop_last=False
+    )
+
+    test_loader = DataLoader(
+        dataset=test_dataset,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        drop_last=False
+    )
+
+    return train_loader, val_loader, test_loader
 
 
 def _get_base_config(choose_model: str = "gpt2-small (124M)"):
@@ -90,45 +166,7 @@ def _apply_file_download():
 def _apply_dataset():
     tokenizer = _get_tokenizer()
 
-    train_dataset = parts.SpamDataset(
-        csv_file='train.csv', max_length=None, tokenizer=tokenizer
-    )
-
-    print(train_dataset.max_length)
-
-    val_dataset = parts.SpamDataset(
-        csv_file='validation.csv', max_length=train_dataset.max_length, tokenizer=tokenizer
-    )
-
-    test_dataset = parts.SpamDataset(
-        csv_file='test.csv', max_length=train_dataset.max_length, tokenizer=tokenizer
-    )
-
-    num_workers = 0
-    batch_size = 8
-    torch.manual_seed(123)
-
-    train_loader = DataLoader(
-        dataset=train_dataset,
-        batch_size=batch_size,
-        shuffle=True,
-        num_workers=num_workers,
-        drop_last=True
-    )
-
-    val_loader = DataLoader(
-        dataset=val_dataset,
-        batch_size=batch_size,
-        num_workers=num_workers,
-        drop_last=False
-    )
-
-    test_loader = DataLoader(
-        dataset=test_dataset,
-        batch_size=batch_size,
-        num_workers=num_workers,
-        drop_last=False
-    )
+    train_loader, val_loader, test_loader = _get_split_data_loader(tokenizer)
 
     for input_batch, target_batch in train_loader:
         pass
@@ -197,6 +235,25 @@ def _apply_load_gpt():
     logits = outputs[:, -1, :]
     label = torch.argmax(logits)
     print(f'logits label: {label.item()}')
+
+
+def _apply_tuning_model():
+    tokenizer = _get_tokenizer()
+    train_loader, val_loader, test_loader = _get_split_data_loader(tokenizer)
+    model = _get_modified_model()
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.to(device)
+
+    torch.manual_seed(123)
+
+    train_accuracy = parts.calc_accuracy_loader(train_loader, model, device, num_batches=10)
+    val_accuracy = parts.calc_accuracy_loader(val_loader, model, device, num_batches=10)
+    test_accuracy = parts.calc_accuracy_loader(test_loader, model, device, num_batches=10)
+
+    print(f'train accuracy: {train_accuracy*100:.2f}')
+    print(f'val accuracy: {val_accuracy*100:.2f}')
+    print(f'test accuracy: {test_accuracy*100:.2f}')
 
 
 if __name__ == "__main__":
