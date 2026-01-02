@@ -243,6 +243,7 @@ def _apply_tuning_model():
     model = _get_modified_model()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('mps')
     model.to(device)
 
     torch.manual_seed(123)
