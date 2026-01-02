@@ -278,7 +278,23 @@ def _apply_tuning_model():
 
     print(f'training completed in {execution_time_minutes:.2f} minutes.')
 
+    epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
+    examples_seen_tensor = torch.linspace(0, examples_seen, len(train_losses))
 
+    parts.plot_values(epochs_tensor, examples_seen_tensor, train_losses, val_losses)
+
+    epochs_tensor = torch.linspace(0, num_epochs, len(train_accs))
+    examples_seen_tensor = torch.linspace(0, examples_seen, len(train_accs))
+
+    parts.plot_values(epochs_tensor, examples_seen_tensor, train_accs, val_accs, label='accuracy')
+
+    train_accuracy = parts.calc_accuracy_loader(train_loader, model, device)
+    val_accuracy = parts.calc_accuracy_loader(val_loader, model, device)
+    test_accuracy = parts.calc_accuracy_loader(test_loader, model, device)
+
+    print(f'train accuracy: {train_accuracy*100:.2f}')
+    print(f'val accuracy: {val_accuracy*100:.2f}')
+    print(f'test accuracy: {test_accuracy*100:.2f}')
 
 
 if __name__ == "__main__":
