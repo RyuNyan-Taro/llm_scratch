@@ -40,6 +40,9 @@ def _apply_file_download():
 
     print(df['Label'].value_counts())
 
+    balanced_df = parts.create_balanced_dataset(df)
+    print(balanced_df['Label'].value_counts())
+
 
 if __name__ == "__main__":
     main()
