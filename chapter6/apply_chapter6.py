@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
+import tiktoken
 from matplotlib import pyplot as plt
 
 import parts
@@ -9,6 +10,10 @@ import parts
 def main():
 
     _apply_file_download()
+
+
+def _get_tokenizer():
+    return tiktoken.get_encoding("gpt2")
 
 
 def _apply_file_download():
