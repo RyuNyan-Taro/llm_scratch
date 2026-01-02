@@ -190,6 +190,14 @@ def _apply_load_gpt():
 
     print('last output:', outputs[:, -1, :].squeeze(0))
 
+    probas = torch.softmax(outputs[:, -1, :], dim=-1)
+    label = torch.argmax(probas)
+    print(f'class label: {label.item()}')
+
+    logits = outputs[:, -1, :]
+    label = torch.argmax(logits)
+    print(f'logits label: {label.item()}')
+
 
 if __name__ == "__main__":
     main()
