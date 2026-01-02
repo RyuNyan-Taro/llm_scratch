@@ -96,7 +96,7 @@ def _get_split_data_loader(tokenizer):
         drop_last=False
     )
 
-    return train_loader, val_loader, test_loader
+    return train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset
 
 
 def _get_base_config(choose_model: str = "gpt2-small (124M)"):
@@ -237,7 +237,7 @@ def _apply_load_gpt():
 
 def _apply_tuning_model():
     tokenizer = _get_tokenizer()
-    train_loader, val_loader, test_loader = _get_split_data_loader(tokenizer)
+    train_loader, val_loader, test_loader, train_dataset, _, _ = _get_split_data_loader(tokenizer)
     model = _get_modified_model()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -295,6 +295,22 @@ def _apply_tuning_model():
     print(f'train accuracy: {train_accuracy*100:.2f}')
     print(f'val accuracy: {val_accuracy*100:.2f}')
     print(f'test accuracy: {test_accuracy*100:.2f}')
+
+    text_1 = (
+        "You are a winner ou have been specially"
+        " selected to receive $1000 cash or a $2000 award."
+    )
+
+    print(parts.classify_review(text_1, model, tokenizer, device, max_length=train_dataset.max_length))
+
+    text_2 = (
+        "Hey, just wanted to check if we're still on"
+        " for dinner tonight? Let me know!"
+    )
+
+    print(parts.classify_review(text_2, model, tokenizer, device, max_length=train_dataset.max_length))
+
+    torch.save(model.state_dict(), "review_classifier.pth")
 
 
 if __name__ == "__main__":
