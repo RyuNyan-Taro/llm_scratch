@@ -13,7 +13,7 @@ class SpamDataset(Dataset):
         self.data = pd.read_csv(csv_file)
 
         self.encoded_texts = [
-            tokenizer.encode(text) for text in self.data['text']
+            tokenizer.encode(text) for text in self.data['Text']
         ]
 
         if max_length is None:
