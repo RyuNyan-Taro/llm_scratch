@@ -8,7 +8,8 @@ __all__ = [
     'plot_losses',
     'softmax_with_temperature',
     'generate',
-    'load_weights_into_gpt'
+    'load_weights_into_gpt',
+    'evaluate_model'
 ]
 
 import numpy as np
