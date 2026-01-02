@@ -21,9 +21,9 @@ def main():
 
     # _apply_load_gpt()
 
-    # _apply_tuning_model()
+    _apply_tuning_model()
 
-    _test_learned_model()
+    # _test_learned_model()
 
 
 def _get_tokenizer():
@@ -270,7 +270,7 @@ def _apply_tuning_model():
     start_time = time.time()
     torch.manual_seed(123)
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
-    num_epochs = 5
+    num_epochs = 7
 
     train_losses, val_losses, train_accs, val_accs, examples_seen = \
         parts.train_classifier_simple(
@@ -321,14 +321,14 @@ def _test_learned_model():
     tokenizer = _get_tokenizer()
     _, _, _, train_dataset, _, _ = _get_split_data_loader(tokenizer)
     model = _get_modified_model()
-    device = torch.device('mps')
+    device = torch.device('cpu')
     model.to(device)
 
     model_state_dict = torch.load("review_classifier.pth", map_location=device, weights_only=True)
     model.load_state_dict(model_state_dict)
 
     text_1 = (
-        "You are a winner ou have been specially"
+        "You are a winner you have been specially"
         " selected to receive $1000 cash or a $2000 award."
     )
 
