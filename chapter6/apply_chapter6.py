@@ -107,6 +107,9 @@ def _apply_dataset():
         pass
     print(input_batch.shape, target_batch.shape)
 
+    for _loader in [train_loader, val_loader, test_loader]:
+        print(len(_loader))
+
 
 if __name__ == "__main__":
     main()
