@@ -141,6 +141,7 @@ def _apply_dataset():
 def _apply_load_gpt():
     CHOOSE_MODEL = "gpt2-small (124M)"
     BASE_CONFIG = _get_base_config(CHOOSE_MODEL)
+    tokenizer = _get_tokenizer()
 
     model_size = CHOOSE_MODEL.split(' ')[-1].lstrip('(').rstrip(')')
     settings, params = gpt_download.download_and_load_gpt2(model_size=model_size, models_dir='gpt2')
@@ -148,6 +149,10 @@ def _apply_load_gpt():
     model = GPTModel(BASE_CONFIG)
     load_weights_into_gpt(model, params)
     model.eval()
+
+    text_1 = "Every effort moves you"
+    token_ids = generate_text_simple(model, text_to_token_ids(text_1, tokenizer), max_new_tokens=15, context_size=BASE_CONFIG['context_length'])
+    print(token_ids_to_text(token_ids, tokenizer))
 
 
 if __name__ == "__main__":
