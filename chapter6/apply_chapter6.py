@@ -45,6 +45,11 @@ def _apply_file_download():
 
     balanced_df['Label'] = balanced_df['Label'].map({'ham': 0, 'spam': 1})
 
+    train_df, validation_df, test_df = parts.random_split(balanced_df, 0.7, 0.1)
+
+    for _file_name, _df in zip(['train', 'validation', 'test'], [train_df, validation_df, test_df]):
+        _df.to_csv(f'{_file_name}.csv', index=None)
+
 
 if __name__ == "__main__":
     main()
