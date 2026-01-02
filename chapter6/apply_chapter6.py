@@ -236,6 +236,8 @@ def _apply_load_gpt():
 
 
 def _apply_tuning_model():
+    """Tunes model; evaluates performance; saves trained weights"""
+
     tokenizer = _get_tokenizer()
     train_loader, val_loader, test_loader, train_dataset, _, _ = _get_split_data_loader(tokenizer)
     model = _get_modified_model()
