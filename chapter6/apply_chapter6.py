@@ -21,7 +21,9 @@ def main():
 
     # _apply_load_gpt()
 
-    _apply_tuning_model()
+    # _apply_tuning_model()
+
+    _test_learned_model()
 
 
 def _get_tokenizer():
@@ -313,6 +315,31 @@ def _apply_tuning_model():
     print(parts.classify_review(text_2, model, tokenizer, device, max_length=train_dataset.max_length))
 
     torch.save(model.state_dict(), "review_classifier.pth")
+
+
+def _test_learned_model():
+    tokenizer = _get_tokenizer()
+    _, _, _, train_dataset, _, _ = _get_split_data_loader(tokenizer)
+    model = _get_modified_model()
+    device = torch.device('mps')
+    model.to(device)
+
+    model_state_dict = torch.load("review_classifier.pth", map_location=device, weights_only=True)
+    model.load_state_dict(model_state_dict)
+
+    text_1 = (
+        "You are a winner ou have been specially"
+        " selected to receive $1000 cash or a $2000 award."
+    )
+
+    print(parts.classify_review(text_1, model, tokenizer, device, max_length=train_dataset.max_length))
+
+    text_2 = (
+        "Hey, just wanted to check if we're still on"
+        " for dinner tonight? Let me know!"
+    )
+
+    print(parts.classify_review(text_2, model, tokenizer, device, max_length=train_dataset.max_length))
 
 
 if __name__ == "__main__":
