@@ -7,17 +7,44 @@ from torch.utils.data import DataLoader
 from matplotlib import pyplot as plt
 
 import parts
+from parts.chapter5parts import gpt_download
+from parts.chapter5parts import load_weights_into_gpt
+from parts.chapter5parts.chapter4parts import GPTModel
 
 
 def main():
 
     # _apply_file_download()
 
-    _apply_dataset()
+    # _apply_dataset()
+
+    _apply_load_gpt()
 
 
 def _get_tokenizer():
     return tiktoken.get_encoding("gpt2")
+
+
+def _get_base_config(choose_model: str = "gpt2-small (124M)"):
+    INPUT_PROMPT = 'Every effort moves'
+
+    BASE_CONFIG = {
+        'vocab_size': 50257,
+        'context_length': 1024,
+        'drop_rate': 0.0,
+        'qkv_bias': True,
+    }
+
+    model_configs = {
+        "gpt2-small (124M)": {"emb_dim": 768, 'n_layers': 12, 'n_heads': 12},
+        "gpt2-medium (355M)": {"emb_dim": 1024, 'n_layers': 24, 'n_heads': 16},
+        "gpt2-large (774M)": {"emb_dim": 1280, 'n_layers': 36, 'n_heads': 20},
+        "gpt2-xl (1558M)": {"emb_dim": 1600, 'n_layers': 48, 'n_heads': 25}
+    }
+
+    BASE_CONFIG.update(model_configs[choose_model])
+
+    return BASE_CONFIG
 
 
 def _apply_file_download():
@@ -109,6 +136,18 @@ def _apply_dataset():
 
     for _loader in [train_loader, val_loader, test_loader]:
         print(len(_loader))
+
+
+def _apply_load_gpt():
+    CHOOSE_MODEL = "gpt2-medium (355M)"
+    BASE_CONFIG = _get_base_config(CHOOSE_MODEL)
+
+    model_size = CHOOSE_MODEL.split(' ')[-1].lstrip('(').rstrip(')')
+    settings, params = gpt_download.download_and_load_gpt2(model_size=model_size, models_dir='gpt2')
+
+    model = GPTModel(BASE_CONFIG)
+    load_weights_into_gpt(model, params)
+    model.eval()
 
 
 if __name__ == "__main__":
