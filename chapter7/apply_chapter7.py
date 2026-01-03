@@ -61,6 +61,9 @@ def _apply_custom_collate():
     print('\napply custom collate 2')
     print(parts.custom_collate_draft_2(batch))
 
+    print('\napply custom collate fn')
+    print(parts.custom_collate_fn(batch))
+
 
 if __name__ == '__main__':
     main()
