@@ -22,7 +22,23 @@ def download_and_load_file(file_path: str, url: str):
     return data
 
 
-def format_input(entry: dict):
+def format_input(entry: dict) -> str:
+    """
+    Generates an Alpaca prompt formatted text string based on the provided dictionary input containing
+    instruction and optional input values. The function creates a specific structure
+    with headers and content to be used in a variety of contexts where instructional
+    guidance and input data are required.
+
+    :param entry: Dictionary containing the keys 'instruction' and 'input'. The 'instruction'
+                  key holds a string that describes a task, while the 'input' key can either
+                  contain additional related information as a string or be empty.
+    :type entry: dict
+
+    :return: The generated string that combines the formatted instruction and input text
+             based on the content of the entry dictionary.
+    :rtype: str
+    """
+
     instruction_text = (
         f"Below is an instruction that describes a task. "
         f"Write a response that appropriately completes the request."
