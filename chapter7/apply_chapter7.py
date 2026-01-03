@@ -1,9 +1,11 @@
+import json
 import time
 from functools import partial
 
 import tiktoken
 import torch
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 import parts
 from parts.chapter5parts import (
@@ -13,7 +15,8 @@ from parts.chapter5parts import (
     text_to_token_ids,
     token_ids_to_text,
     calc_loss_loader,
-    train_model_simple
+    train_model_simple,
+    plot_losses
 
 )
 from parts.chapter4parts import GPTModel
@@ -72,7 +75,7 @@ def _get_loaded_model():
     model = GPTModel(BASE_CONFIG)
     load_weights_into_gpt(model, params)
 
-    return model
+    return model, BASE_CONFIG
 
 
 def _get_divided_loaders(train_data, test_data, val_data, tokenizer, device):
@@ -286,7 +289,7 @@ def _apply_read_learned_model():
 
 def _apply_fine_tuning():
     device = _get_device()
-    model = _get_loaded_model()
+    model, BASE_CONFIG = _get_loaded_model()
     tokenizer = _get_tokenizer()
 
     train_data, test_data, val_data = _apply_get_dataset()
@@ -322,6 +325,45 @@ def _apply_fine_tuning():
     end_time = time.time()
     execution_time_minutes = (end_time - start_time) / 60
     print('training completed in', execution_time_minutes, 'minutes.')
+
+    for entry in test_data[:3]:
+        input_text = parts.format_input(entry)
+        token_ids = generate(
+            model=model, idx=text_to_token_ids(input_text, tokenizer).to(device),
+            max_new_tokens=256,
+            context_size=BASE_CONFIG['context_size'],
+            eos_id=50256
+        )
+        generated_text = token_ids_to_text(token_ids, tokenizer)
+
+        response_text = (
+            generated_text[len(input_text):].replace('### Response:', "").strip()
+        )
+
+        print(input_text)
+        print(f'\nCollect response:\n>> {entry["output"]}')
+        print(f'\nModel response:\n>> {response_text.strip()}')
+
+    for i, entry in tqdm(enumerate(test_data), total=len(test_data)):
+        input_text = parts.format_input(entry)
+        token_ids = generate(
+            model=model, idx=text_to_token_ids(input_text, tokenizer).to(device),
+            max_new_tokens=256,
+            context_size=BASE_CONFIG['context_size'],
+            eos_id=50256
+        )
+        generated_text = token_ids_to_text(token_ids, tokenizer)
+
+        response_text = (
+            generated_text[len(input_text):].replace('### Response:', "").strip()
+        )
+        test_data[i]['model_response'] = response_text
+
+    with open('instruction-data-with-response.json', 'w') as file:
+        json.dump(test_data, file, indent=4)
+
+    epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
+    plot_losses(epochs_tensor, token_seen, train_losses, val_losses)
 
 
 if __name__ == '__main__':
