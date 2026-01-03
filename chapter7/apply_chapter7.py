@@ -18,6 +18,7 @@ def _apply_get_dataset():
     print(data[:2])
 
     print('Example entry:\n', data[50])
+    print('Another example entry:\n', data[999], '\n')
 
 
 if __name__ == '__main__':
