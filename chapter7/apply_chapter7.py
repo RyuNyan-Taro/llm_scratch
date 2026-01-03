@@ -55,7 +55,11 @@ def _apply_custom_collate():
         inputs_4
     )
 
+    print('\napply custom collate 1')
     print(parts.custom_collate_draft_1(batch))
+
+    print('\napply custom collate 2')
+    print(parts.custom_collate_draft_2(batch))
 
 
 if __name__ == '__main__':
