@@ -1,4 +1,4 @@
-__all__ = ['download_and_load_file']
+__all__ = ['download_and_load_file', 'format_input']
 
 import json
 import os.path
@@ -20,3 +20,17 @@ def download_and_load_file(file_path: str, url: str):
         data = json.load(file)
 
     return data
+
+
+def format_input(entry: dict):
+    instruction_text = (
+        f"Below is an instruction that describes a task. "
+        f"Write a response that appropriately completes the request."
+        f"\n\n### Instruction: \n{entry['instruction']}"
+    )
+
+    input_text = (
+        f"\n\n### Input\n{entry['input']}" if entry['input'] else ""
+    )
+
+    return instruction_text + input_text
