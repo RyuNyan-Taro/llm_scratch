@@ -1,3 +1,4 @@
+import time
 from functools import partial
 
 import tiktoken
@@ -305,6 +306,22 @@ def _apply_fine_tuning():
 
     print(f'training loss:', train_loss)
     print(f'validation loss:', val_loss)
+
+    start_time = time.time()
+    torch.manual_seed(123)
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
+    num_epochs = 2
+
+    train_losses, val_losses, token_seen = train_model_simple(
+        model, train_loader, val_loader, optimizer, device,
+        num_epochs=num_epochs, eval_freq=5, eval_iter=5,
+        start_context=parts.format_input(val_data[0]), tokenizer=tokenizer
+    )
+
+    end_time = time.time()
+    execution_time_minutes = (end_time - start_time) / 60
+    print('training completed in', execution_time_minutes, 'minutes.')
 
 
 if __name__ == '__main__':
