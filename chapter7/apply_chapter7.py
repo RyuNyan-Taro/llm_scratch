@@ -3,7 +3,9 @@ import parts
 
 def main():
 
-    _apply_get_dataset()
+    # _apply_get_dataset()
+
+    _apply_custom_collate()
 
 
 def _apply_get_dataset():
@@ -38,6 +40,20 @@ def _apply_get_dataset():
     print('train data:', len(train_data))
     print('test data:', len(test_data))
     print('val data:', len(val_data))
+
+
+def _apply_custom_collate():
+    inputs_1 = [0, 1, 2, 3, 4]
+    inputs_2 = [5, 6]
+    inputs_3 = [7, 8, 9]
+
+    batch = (
+        inputs_1,
+        inputs_2,
+        inputs_3
+    )
+
+    print(parts.custom_collate_draft_1(batch))
 
 
 if __name__ == '__main__':
