@@ -5,6 +5,8 @@ import torch
 from torch.utils.data import DataLoader
 
 import parts
+from parts.chapter5parts import gpt_download, load_weights_into_gpt, generate, text_to_token_ids, token_ids_to_text
+from parts.chapter4parts import GPTModel
 
 
 def main():
@@ -13,7 +15,9 @@ def main():
 
     # _apply_custom_collate()
 
-    _apply_custom_dataloader()
+    # _apply_custom_dataloader()
+
+    _apply_read_learned_model()
 
 
 def _get_tokenizer():
@@ -131,6 +135,56 @@ def _apply_custom_dataloader():
     print('train loader:')
     for inputs, targets in train_loader:
         print(inputs.shape, targets.shape)
+
+
+def _apply_read_learned_model():
+    """Reads learned model; generates response from validation data"""
+
+    train_data, test_data, val_data = _apply_get_dataset()
+    tokenizer = _get_tokenizer()
+
+    BASE_CONFIG = {
+        'vocab_size': 50257,
+        'context_length': 1024,
+        'drop_rate': 0.0,
+        'qkv_bias': True
+    }
+
+    model_configs = {
+        "gpt2-small (124M)": {"emb_dim": 768, 'n_layers': 12, 'n_heads': 12},
+        "gpt2-medium (355M)": {"emb_dim": 1024, 'n_layers': 24, 'n_heads': 16},
+        "gpt2-large (774M)": {"emb_dim": 1280, 'n_layers': 36, 'n_heads': 20},
+        "gpt2-xl (1558M)": {"emb_dim": 1600, 'n_layers': 48, 'n_heads': 25}
+    }
+
+    CHOOSE_MODEL = "gpt2-medium (355M)"
+    BASE_CONFIG.update(model_configs[CHOOSE_MODEL])
+
+    model_size = CHOOSE_MODEL.split(' ')[-1].lstrip('(').rstrip(')')
+
+    settings, params = gpt_download.download_and_load_gpt2(
+        model_size=model_size, models_dir='gpt2'
+    )
+
+    model = GPTModel(BASE_CONFIG)
+    load_weights_into_gpt(model, params)
+    model.eval()
+
+    torch.manual_seed(123)
+
+    input_text = parts.format_input(val_data[0])
+    print(input_text)
+
+    token_ids = generate(
+        model=model, idx=text_to_token_ids(input_text, tokenizer=tokenizer),
+        max_new_tokens=35,
+        context_size=BASE_CONFIG['context_length'],
+        eos_id=50256
+    )
+    generated_text = token_ids_to_text(token_ids, tokenizer)
+
+    response_text = generated_text[len(input_text):].strip()
+    print(response_text)
 
 
 if __name__ == '__main__':
