@@ -195,12 +195,13 @@ def generate(model, idx, max_new_tokens, context_size, temperature: float = 0.0,
             min_val = top_logits[:, -1]
             logits = torch.where(
                 condition=logits < min_val,
-                input=torch.tensor(float('-inf')),
+                input=torch.tensor(float('-inf')).to(logits.device),
                 other=logits
             )
 
         if temperature > 0.0:
             logits = logits / temperature
+            logits = logits - logits.max(dim=-1, keepdim=True).values
             probs = torch.softmax(logits, dim=-1)
             idx_next = torch.multinomial(probs, num_samples=1)
         else:
@@ -209,7 +210,7 @@ def generate(model, idx, max_new_tokens, context_size, temperature: float = 0.0,
         if idx_next == eos_id:
             break
 
-        idx = torch.cat((idx, idx_next), dim=-1)
+        idx = torch.cat((idx, idx_next), dim=1)
 
     return idx
 
