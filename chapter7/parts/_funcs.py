@@ -14,7 +14,7 @@ def download_and_load_file(file_path: str, url: str):
 
     else:
         with open(file_path, 'r', encoding='utf-8') as file:
-            text_data = file.read()
+            data = file.read()
 
     with open(file_path, 'r') as file:
         data = json.load(file)
