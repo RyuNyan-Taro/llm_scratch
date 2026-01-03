@@ -20,6 +20,11 @@ def _apply_get_dataset():
     print('Example entry:\n', data[50])
     print('Another example entry:\n', data[999], '\n')
 
+    model_input = parts.format_input(data[50])
+    desired_response = f"\n\n### Response:\n{data[50]['output']}"
+
+    print(model_input + desired_response)
+
 
 if __name__ == '__main__':
     main()
