@@ -27,6 +27,18 @@ def _apply_get_dataset():
 
         print(model_input + desired_response)
 
+    train_portion = int(len(data) * 0.85)
+    test_portion = int(len(data) * 0.1)
+    val_portion = len(data) - train_portion - test_portion
+
+    train_data = data[:train_portion]
+    test_data = data[train_portion:train_portion+test_portion]
+    val_data = data[train_portion+test_portion:]
+
+    print('train data:', len(train_data))
+    print('test data:', len(test_data))
+    print('val data:', len(val_data))
+
 
 if __name__ == '__main__':
     main()
