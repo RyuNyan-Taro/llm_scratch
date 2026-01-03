@@ -195,12 +195,13 @@ def generate(model, idx, max_new_tokens, context_size, temperature: float = 0.0,
             min_val = top_logits[:, -1]
             logits = torch.where(
                 condition=logits < min_val,
-                input=torch.tensor(float('-inf')),
+                input=torch.tensor(float('-inf')).to(logits.device),
                 other=logits
             )
 
         if temperature > 0.0:
             logits = logits / temperature
+            logits = logits - logits.max(dim=-1, keepdim=True).values
             probs = torch.softmax(logits, dim=-1)
             idx_next = torch.multinomial(probs, num_samples=1)
         else:
@@ -209,14 +210,14 @@ def generate(model, idx, max_new_tokens, context_size, temperature: float = 0.0,
         if idx_next == eos_id:
             break
 
-        idx = torch.cat((idx, idx_next), dim=-1)
+        idx = torch.cat((idx, idx_next), dim=1)
 
     return idx
 
 
 def load_weights_into_gpt(gpt, params):
-    gpt.pos_emb.weight = assign(gpt.pos_emb.weight, params['wpe'])
-    gpt.tok_emb.weight = assign(gpt.tok_emb.weight, params['wte'])
+    gpt.pos_emb.weight = assign(gpt.pos_emb.weight, params["wpe"])
+    gpt.tok_emb.weight = assign(gpt.tok_emb.weight, params["wte"])
 
     for b in range(len(params["blocks"])):
         q_w, k_w, v_w = np.split(
