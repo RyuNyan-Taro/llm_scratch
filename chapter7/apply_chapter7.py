@@ -17,6 +17,8 @@ def _apply_get_dataset():
     print('number of entries:', len(data))
     print(data[:2])
 
+    print('Example entry:\n', data[50])
+
 
 if __name__ == '__main__':
     main()
