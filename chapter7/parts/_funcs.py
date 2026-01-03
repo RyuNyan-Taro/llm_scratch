@@ -9,7 +9,7 @@ def download_and_load_file(file_path: str, url: str):
     if not os.path.exists(file_path):
         with urllib.request.urlopen(url) as response:
             text_data = response.read().decode('utf-8')
-        with open(file_path, 'w', encodeing='utf-8') as file:
+        with open(file_path, 'w') as file:
             file.write(text_data)
 
     else:
