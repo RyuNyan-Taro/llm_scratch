@@ -85,8 +85,8 @@ def _apply_custom_collate():
 
 def _apply_custom_dataloader():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    if torch.backends.mps.is_available():
-        device = torch.device('mps')
+    # if torch.backends.mps.is_available():
+    #     device = torch.device('mps')
     print(f'device: {device}')
 
     customized_collate_fn = partial(
@@ -184,6 +184,8 @@ def _apply_read_learned_model():
     generated_text = token_ids_to_text(token_ids, tokenizer)
 
     response_text = generated_text[len(input_text):].strip()
+    # response_text: object = generated_text.strip()
+    print('\nresponse text:\n')
     print(response_text)
 
 
