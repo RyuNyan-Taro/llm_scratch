@@ -15,6 +15,7 @@ def _apply_get_dataset():
     data = parts.download_and_load_file(file_path, url)
 
     print('number of entries:', len(data))
+    print(data[:2])
 
 
 if __name__ == '__main__':
