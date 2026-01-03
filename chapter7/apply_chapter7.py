@@ -1,3 +1,9 @@
+from functools import partial
+
+import tiktoken
+import torch
+from torch.utils.data import DataLoader
+
 import parts
 
 
@@ -5,7 +11,13 @@ def main():
 
     # _apply_get_dataset()
 
-    _apply_custom_collate()
+    # _apply_custom_collate()
+
+    _apply_custom_dataloader()
+
+
+def _get_tokenizer():
+    return tiktoken.get_encoding("gpt2")
 
 
 def _apply_get_dataset():
@@ -41,6 +53,8 @@ def _apply_get_dataset():
     print('test data:', len(test_data))
     print('val data:', len(val_data))
 
+    return train_data, test_data, val_data
+
 
 def _apply_custom_collate():
     inputs_1 = [0, 1, 2, 3, 4]
@@ -63,6 +77,60 @@ def _apply_custom_collate():
 
     print('\napply custom collate fn')
     print(parts.custom_collate_fn(batch))
+
+
+def _apply_custom_dataloader():
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if torch.backends.mps.is_available():
+        device = torch.device('mps')
+    print(f'device: {device}')
+
+    customized_collate_fn = partial(
+        parts.custom_collate_fn,
+        device=device,
+        allowed_max_length=1024
+    )
+
+    train_data, test_data, val_data = _apply_get_dataset()
+    tokenizer = _get_tokenizer()
+
+    num_loaders = 0
+    batch_size = 8
+    torch.manual_seed(123)
+
+    train_dataset = parts.InstructionDataset(train_data, tokenizer)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        collate_fn=customized_collate_fn,
+        shuffle=True,
+        drop_last=True,
+        num_workers=num_loaders
+    )
+
+    val_dataset = parts.InstructionDataset(val_data, tokenizer)
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        collate_fn=customized_collate_fn,
+        shuffle=False,
+        drop_last=False,
+        num_workers=num_loaders
+    )
+
+    test_dataset = parts.InstructionDataset(test_data, tokenizer)
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=batch_size,
+        collate_fn=customized_collate_fn,
+        shuffle=False,
+        drop_last=False,
+        num_workers=num_loaders
+    )
+
+    print('train loader:')
+    for inputs, targets in train_loader:
+        print(inputs.shape, targets.shape)
 
 
 if __name__ == '__main__':
