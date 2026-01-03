@@ -74,3 +74,5 @@ def custom_collate_draft_1(batch, pad_token_id=50256, device='cpu'):
 
     inputs_tensor = torch.stack(inputs_lst).to(device)
 
+    return inputs_tensor
+
