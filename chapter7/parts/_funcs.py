@@ -2,7 +2,7 @@ __all__ = ['download_and_load_file']
 
 import json
 import os.path
-import urllib
+import urllib.request
 
 
 def download_and_load_file(file_path: str, url: str):
