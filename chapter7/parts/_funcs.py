@@ -1,8 +1,14 @@
-__all__ = ['download_and_load_file', 'format_input']
+__all__ = [
+    'download_and_load_file',
+    'format_input',
+    'custom_collate_draft_1'
+]
 
 import json
 import os.path
 import urllib.request
+
+import torch
 
 
 def download_and_load_file(file_path: str, url: str):
@@ -50,3 +56,21 @@ def format_input(entry: dict) -> str:
     )
 
     return instruction_text + input_text
+
+
+def custom_collate_draft_1(batch, pad_token_id=50256, device='cpu'):
+    batch_max_length = max(len(item)+1 for item in batch)
+    inputs_lst = []
+
+    for item in batch:
+        new_item = item.copy()
+        new_item += [pad_token_id]
+
+        padded = (
+            new_item + [pad_token_id] * (batch_max_length - len(new_item))
+        )
+        inputs = torch.tensor(padded[:-1])
+        inputs_lst.append(inputs)
+
+    inputs_tensor = torch.stack(inputs_lst).to(device)
+
