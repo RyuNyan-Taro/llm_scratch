@@ -140,7 +140,7 @@ def custom_collate_fn(batch, pad_token_id=50256, ignore_index=-100,
 
 def check_if_running(process_name: str):
     running = False
-    for proc in psutil.process_iter('name'):
+    for proc in psutil.process_iter(['name']):
         if process_name in proc.info['name']:
             running = True
             break
