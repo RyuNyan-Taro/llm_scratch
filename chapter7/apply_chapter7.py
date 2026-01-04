@@ -331,7 +331,7 @@ def _apply_fine_tuning():
         token_ids = generate(
             model=model, idx=text_to_token_ids(input_text, tokenizer).to(device),
             max_new_tokens=256,
-            context_size=BASE_CONFIG['context_size'],
+            context_size=BASE_CONFIG['context_length'],
             eos_id=50256
         )
         generated_text = token_ids_to_text(token_ids, tokenizer)
@@ -349,7 +349,7 @@ def _apply_fine_tuning():
         token_ids = generate(
             model=model, idx=text_to_token_ids(input_text, tokenizer).to(device),
             max_new_tokens=256,
-            context_size=BASE_CONFIG['context_size'],
+            context_size=BASE_CONFIG['context_length'],
             eos_id=50256
         )
         generated_text = token_ids_to_text(token_ids, tokenizer)
