@@ -1,11 +1,24 @@
+import json
+import time
 from functools import partial
 
 import tiktoken
 import torch
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 import parts
-from parts.chapter5parts import gpt_download, load_weights_into_gpt, generate, text_to_token_ids, token_ids_to_text
+from parts.chapter5parts import (
+    gpt_download,
+    load_weights_into_gpt,
+    generate,
+    text_to_token_ids,
+    token_ids_to_text,
+    calc_loss_loader,
+    train_model_simple,
+    plot_losses
+
+)
 from parts.chapter4parts import GPTModel
 
 
@@ -17,11 +30,98 @@ def main():
 
     # _apply_custom_dataloader()
 
-    _apply_read_learned_model()
+    # _apply_read_learned_model()
+
+    # _apply_fine_tuning()
+
+    _apply_verification()
 
 
 def _get_tokenizer():
     return tiktoken.get_encoding("gpt2")
+
+
+def _get_device():
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # if torch.backends.mps.is_available():
+    #     device = torch.device('mps')
+    print(f'device: {device}')
+
+    return device
+
+
+def _get_loaded_model():
+    BASE_CONFIG = {
+        'vocab_size': 50257,
+        'context_length': 1024,
+        'drop_rate': 0.0,
+        'qkv_bias': True
+    }
+
+    model_configs = {
+        "gpt2-small (124M)": {"emb_dim": 768, 'n_layers': 12, 'n_heads': 12},
+        "gpt2-medium (355M)": {"emb_dim": 1024, 'n_layers': 24, 'n_heads': 16},
+        "gpt2-large (774M)": {"emb_dim": 1280, 'n_layers': 36, 'n_heads': 20},
+        "gpt2-xl (1558M)": {"emb_dim": 1600, 'n_layers': 48, 'n_heads': 25}
+    }
+
+    CHOOSE_MODEL = "gpt2-medium (355M)"
+    BASE_CONFIG.update(model_configs[CHOOSE_MODEL])
+
+    model_size = CHOOSE_MODEL.split(' ')[-1].lstrip('(').rstrip(')')
+
+    settings, params = gpt_download.download_and_load_gpt2(
+        model_size=model_size, models_dir='gpt2'
+    )
+
+    model = GPTModel(BASE_CONFIG)
+    load_weights_into_gpt(model, params)
+
+    return model, BASE_CONFIG
+
+
+def _get_divided_loaders(train_data, test_data, val_data, tokenizer, device):
+    num_loaders = 0
+    batch_size = 8
+    torch.manual_seed(123)
+
+    customized_collate_fn = partial(
+        parts.custom_collate_fn,
+        device=device,
+        allowed_max_length=1024
+    )
+
+    train_dataset = parts.InstructionDataset(train_data, tokenizer)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        collate_fn=customized_collate_fn,
+        shuffle=True,
+        drop_last=True,
+        num_workers=num_loaders
+    )
+
+    val_dataset = parts.InstructionDataset(val_data, tokenizer)
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        collate_fn=customized_collate_fn,
+        shuffle=False,
+        drop_last=False,
+        num_workers=num_loaders
+    )
+
+    test_dataset = parts.InstructionDataset(test_data, tokenizer)
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=batch_size,
+        collate_fn=customized_collate_fn,
+        shuffle=False,
+        drop_last=False,
+        num_workers=num_loaders
+    )
+
+    return train_loader, test_loader, val_loader
 
 
 def _apply_get_dataset():
@@ -187,6 +287,104 @@ def _apply_read_learned_model():
     # response_text: object = generated_text.strip()
     print('\nresponse text:\n')
     print(response_text)
+
+
+def _apply_fine_tuning():
+    device = _get_device()
+    model, BASE_CONFIG = _get_loaded_model()
+    tokenizer = _get_tokenizer()
+
+    train_data, test_data, val_data = _apply_get_dataset()
+    train_loader, test_loader, val_loader = _get_divided_loaders(
+        train_data, test_data, val_data, tokenizer, device
+    )
+
+    model.to(device)
+
+    torch.manual_seed(123)
+
+    with torch.no_grad():
+        train_loss = calc_loss_loader(
+            train_loader, model, device, num_batches=5
+        )
+        val_loss = calc_loss_loader(val_loader, model, device, num_batches=5)
+
+    print(f'training loss:', train_loss)
+    print(f'validation loss:', val_loss)
+
+    start_time = time.time()
+    torch.manual_seed(123)
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.1)
+    num_epochs = 2
+
+    train_losses, val_losses, token_seen = train_model_simple(
+        model, train_loader, val_loader, optimizer, device,
+        num_epochs=num_epochs, eval_freq=5, eval_iter=5,
+        start_context=parts.format_input(val_data[0]), tokenizer=tokenizer
+    )
+
+    end_time = time.time()
+    execution_time_minutes = (end_time - start_time) / 60
+    print('training completed in', execution_time_minutes, 'minutes.')
+
+    for entry in test_data[:3]:
+        input_text = parts.format_input(entry)
+        token_ids = generate(
+            model=model, idx=text_to_token_ids(input_text, tokenizer).to(device),
+            max_new_tokens=256,
+            context_size=BASE_CONFIG['context_length'],
+            eos_id=50256
+        )
+        generated_text = token_ids_to_text(token_ids, tokenizer)
+
+        response_text = (
+            generated_text[len(input_text):].replace('### Response:', "").strip()
+        )
+
+        print(input_text)
+        print(f'\nCollect response:\n>> {entry["output"]}')
+        print(f'\nModel response:\n>> {response_text.strip()}')
+
+    for i, entry in tqdm(enumerate(test_data), total=len(test_data)):
+        input_text = parts.format_input(entry)
+        token_ids = generate(
+            model=model, idx=text_to_token_ids(input_text, tokenizer).to(device),
+            max_new_tokens=256,
+            context_size=BASE_CONFIG['context_length'],
+            eos_id=50256
+        )
+        generated_text = token_ids_to_text(token_ids, tokenizer)
+
+        response_text = (
+            generated_text[len(input_text):].replace('### Response:', "").strip()
+        )
+        test_data[i]['model_response'] = response_text
+
+    with open('instruction-data-with-response.json', 'w') as file:
+        json.dump(test_data, file, indent=4)
+
+    epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
+    plot_losses(epochs_tensor, token_seen, train_losses, val_losses)
+
+
+def _apply_verification():
+    ollama_running = parts.check_if_running('ollama')
+
+    if not ollama_running:
+        raise RuntimeError('Ollama is not running. Please start Ollama and try again.')
+    print('Ollama running:', parts.check_if_running('ollama'))
+
+    model = "llama3"
+    # result = parts.query_model("What do Llamas eat?", model)
+    #
+    # print(result)
+
+    test_data = parts.download_and_load_file('instruction-data-with-response.json', '')
+    scores = parts.generate_model_scores(test_data, 'model_response', model)
+
+    print(f'Number of scores: {len(scores)} of {len(test_data)}')
+    print(f'Average score: {sum(scores)/len(scores):.2f}\n')
 
 
 if __name__ == '__main__':
