@@ -376,9 +376,15 @@ def _apply_verification():
     print('Ollama running:', parts.check_if_running('ollama'))
 
     model = "llama3"
-    result = parts.query_model("What do Llamas eat?", model)
+    # result = parts.query_model("What do Llamas eat?", model)
+    #
+    # print(result)
 
-    print(result)
+    test_data = parts.download_and_load_file('instruction-data-with-response.json', '')
+    scores = parts.generate_model_scores(test_data, 'model_response', model)
+
+    print(f'Number of scores: {len(scores)} of {len(test_data)}')
+    print(f'Average score: {sum(scores)/len(scores):.2f}\n')
 
 
 if __name__ == '__main__':
