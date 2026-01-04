@@ -376,7 +376,7 @@ def _apply_verification():
     print('Ollama running:', parts.check_if_running('ollama'))
 
     model = "llama3"
-    result = parts.verify_model("What do Llamas eat?", model)
+    result = parts.query_model("What do Llamas eat?", model)
 
 
 if __name__ == '__main__':
