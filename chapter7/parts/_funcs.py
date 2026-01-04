@@ -5,7 +5,8 @@ __all__ = [
     'custom_collate_draft_2',
     'custom_collate_fn',
     'check_if_running',
-    'query_model'
+    'query_model',
+    'generate_model_scores'
 ]
 
 import json
@@ -14,6 +15,7 @@ import urllib.request
 
 import psutil
 import torch
+from tqdm import tqdm
 
 
 def download_and_load_file(file_path: str, url: str):
@@ -180,4 +182,24 @@ def query_model(prompt, model: str = 'llama3', url='http://localhost:11434/api/c
             print(f"\rReceived response length: {len(response_data)}", end="", flush=True)
 
     return response_data
+
+
+def generate_model_scores(json_data, json_key, model="llama3"):
+    scores = []
+    for entry in tqdm(json_data, desc='Scoring entries'):
+        prompt = (
+            f"Given the input `{format_input(entry)}` "
+            f"and correct output `{entry['output']}`, "
+            f"score the model response `{entry[json_key]}`"
+            f" on a scale from 0 to 100, where 100 is the best score. "
+            f"Respond with the integer number only."
+        )
+        score = query_model(prompt, model=model)
+        try:
+            scores.append(int(score))
+        except ValueError:
+            print(f'could not convert score: {score} to int')
+            continue
+
+    return scores
 
