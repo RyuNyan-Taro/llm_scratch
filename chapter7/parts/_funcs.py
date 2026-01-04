@@ -151,7 +151,7 @@ def check_if_running(process_name: str):
     return running
 
 
-def query_model(prompt, model: str = 'llama3', url='http://localhost:11434/api/chat'):
+def query_model(prompt, model: str = 'llama3', url='http://localhost:11434/api/chat', show_log: bool = False):
     data = {
         'model': model,
         'messages': [{"role": "user", "content": prompt}],
@@ -179,7 +179,8 @@ def query_model(prompt, model: str = 'llama3', url='http://localhost:11434/api/c
                 break
             response_json = json.loads(line)
             response_data += response_json['message']['content']
-            print(f"\rReceived response length: {len(response_data)}", end="", flush=True)
+            if show_log:
+                print(f"\rReceived response length: {len(response_data)}", end="", flush=True)
 
     return response_data
 
