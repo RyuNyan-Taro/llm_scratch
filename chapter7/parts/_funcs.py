@@ -3,13 +3,15 @@ __all__ = [
     'format_input',
     'custom_collate_draft_1',
     'custom_collate_draft_2',
-    'custom_collate_fn'
+    'custom_collate_fn',
+    'check_if_running'
 ]
 
 import json
 import os.path
 import urllib.request
 
+import psutil
 import torch
 
 
@@ -134,3 +136,13 @@ def custom_collate_fn(batch, pad_token_id=50256, ignore_index=-100,
     targets_tensor = torch.stack(targets_lst).to(device)
 
     return inputs_tensor, targets_tensor
+
+
+def check_if_running(process_name: str):
+    running = False
+    for proc in psutil.process_iter('name'):
+        if process_name in proc.info['name']:
+            running = True
+            break
+
+    return running
