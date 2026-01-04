@@ -378,6 +378,8 @@ def _apply_verification():
     model = "llama3"
     result = parts.query_model("What do Llamas eat?", model)
 
+    print(result)
+
 
 if __name__ == '__main__':
     main()

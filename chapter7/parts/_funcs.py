@@ -177,6 +177,7 @@ def query_model(prompt, model: str = 'llama3', url='http://localhost:11434/api/c
                 break
             response_json = json.loads(line)
             response_data += response_json['message']['content']
+            print(f"\rReceived response length: {len(response_data)}", end="", flush=True)
 
     return response_data
 
