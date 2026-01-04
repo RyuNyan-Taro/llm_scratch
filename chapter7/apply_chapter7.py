@@ -32,7 +32,9 @@ def main():
 
     # _apply_read_learned_model()
 
-    _apply_fine_tuning()
+    # _apply_fine_tuning()
+
+    _apply_verification()
 
 
 def _get_tokenizer():
@@ -364,6 +366,17 @@ def _apply_fine_tuning():
 
     epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
     plot_losses(epochs_tensor, token_seen, train_losses, val_losses)
+
+
+def _apply_verification():
+    ollama_running = parts.check_if_running('ollama')
+
+    if not ollama_running:
+        raise RuntimeError('Ollama is not running. Please start Ollama and try again.')
+    print('Ollama running:', parts.check_if_running('ollama'))
+
+    model = "llama3"
+    result = parts.verify_model("What do Llamas eat?", model)
 
 
 if __name__ == '__main__':
